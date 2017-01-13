@@ -32,7 +32,8 @@ static void tcp_rack_mark_skb_lost(struct sock *sk, struct sk_buff *skb)
  * The current version is only used after recovery starts but can be
  * easily extended to detect the first loss.
  */
-int tcp_rack_mark_lost(struct sock *sk)
+static void tcp_rack_detect_loss(struct sock *sk, const struct skb_mstamp *now,
+				 u32 *reo_timeout)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
 	struct sk_buff *skb;
@@ -44,13 +45,11 @@ int tcp_rack_mark_lost(struct sock *sk)
 	/* Reset the advanced flag to avoid unnecessary queue scanning */
 	tp->rack.advanced = 0;
 
+	*reo_timeout = 0;
 	/* To be more reordering resilient, allow min_rtt/4 settling delay
 	 * (lower-bounded to 1000uS). We use min_rtt instead of the smoothed
 	 * RTT because reordering is often a path property and less related
 	 * to queuing or delayed ACKs.
-	 *
-	 * TODO: measure and adapt to the observed reordering delay, and
-	 * use a timer to retransmit like the delayed early retransmit.
 	 */
 	reo_wnd = 1000;
 	if (tp->rack.reord && tcp_min_rtt(tp) != ~0U)
@@ -68,13 +67,27 @@ int tcp_rack_mark_lost(struct sock *sk)
 			continue;
 
 		if (skb_mstamp_after(&tp->rack.mstamp, &skb->skb_mstamp)) {
+			/* Step 3 in draft-cheng-tcpm-rack-00.txt:
+			 * A packet is lost if its elapsed time is beyond
+			 * the recent RTT plus the reordering window.
+			 */
+			u32 elapsed = skb_mstamp_us_delta(now,
+							  &skb->skb_mstamp);
+			s32 remaining = tp->rack.rtt_us + reo_wnd - elapsed;
 
-			if (skb_mstamp_us_delta(&tp->rack.mstamp,
-						&skb->skb_mstamp) <= reo_wnd)
+			if (remaining < 0) {
+				tcp_rack_mark_skb_lost(sk, skb);
+				continue;
+			}
+
+			/* Skip ones marked lost but not yet retransmitted */
+			if ((scb->sacked & TCPCB_LOST) &&
+			    !(scb->sacked & TCPCB_SACKED_RETRANS))
 				continue;
 
-			/* skb is lost if packet sent later is sacked */
-			tcp_rack_mark_skb_lost(sk, skb);
+			/* Record maximum wait time (+1 to avoid 0) */
+			*reo_timeout = max_t(u32, *reo_timeout, 1 + remaining);
+
 		} else if (!(scb->sacked & TCPCB_RETRANS)) {
 			/* Original data are sent sequentially so stop early
 			 * b/c the rest are all sent after rack_sent
@@ -89,6 +102,32 @@ int tcp_rack_mark_lost(struct sock *sk)
 void tcp_rack_advance(struct tcp_sock *tp,
 		      const struct skb_mstamp *xmit_time, u8 sacked)
 {
+	struct tcp_sock *tp = tcp_sk(sk);
+	u32 timeout;
+
+	if (inet_csk(sk)->icsk_ca_state < TCP_CA_Recovery || !tp->rack.advanced)
+		return;
+
+	/* Reset the advanced flag to avoid unnecessary queue scanning */
+	tp->rack.advanced = 0;
+	tcp_rack_detect_loss(sk, now, &timeout);
+	if (timeout) {
+		timeout = usecs_to_jiffies(timeout + TCP_REO_TIMEOUT_MIN);
+		inet_csk_reset_xmit_timer(sk, ICSK_TIME_REO_TIMEOUT,
+					  timeout, inet_csk(sk)->icsk_rto);
+	}
+}
+
+/* Record the most recently (re)sent time among the (s)acked packets
+ * This is "Step 3: Advance RACK.xmit_time and update RACK.RTT" from
+ * draft-cheng-tcpm-rack-00.txt
+ */
+void tcp_rack_advance(struct tcp_sock *tp, u8 sacked,
+		      const struct skb_mstamp *xmit_time,
+		      const struct skb_mstamp *ack_time)
+{
+	u32 rtt_us;
+
 	if (tp->rack.mstamp.v64 &&
 	    !skb_mstamp_after(xmit_time, &tp->rack.mstamp))
 		return;
@@ -113,4 +152,28 @@ void tcp_rack_advance(struct tcp_sock *tp,
 
 	tp->rack.mstamp = *xmit_time;
 	tp->rack.advanced = 1;
+}
+
+/* We have waited long enough to accommodate reordering. Mark the expired
+ * packets lost and retransmit them.
+ */
+void tcp_rack_reo_timeout(struct sock *sk)
+{
+	struct tcp_sock *tp = tcp_sk(sk);
+	struct skb_mstamp now;
+	u32 timeout, prior_inflight;
+
+	skb_mstamp_get(&now);
+	prior_inflight = tcp_packets_in_flight(tp);
+	tcp_rack_detect_loss(sk, &now, &timeout);
+	if (prior_inflight != tcp_packets_in_flight(tp)) {
+		if (inet_csk(sk)->icsk_ca_state != TCP_CA_Recovery) {
+			tcp_enter_recovery(sk, false);
+			if (!inet_csk(sk)->icsk_ca_ops->cong_control)
+				tcp_cwnd_reduction(sk, 1, 0);
+		}
+		tcp_xmit_retransmit_queue(sk);
+	}
+	if (inet_csk(sk)->icsk_pending != ICSK_TIME_RETRANS)
+		tcp_rearm_rto(sk);
 }
