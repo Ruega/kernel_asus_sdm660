@@ -3593,8 +3593,6 @@ static int tcp_ack(struct sock *sk, const struct sk_buff *skb, int flag)
 	if (after(ack, tp->snd_nxt))
 		goto invalid_ack;
 
-	skb_mstamp_get(&now);
-
 	if (icsk->icsk_pending == ICSK_TIME_LOSS_PROBE)
 		tcp_rearm_rto(sk);
 
