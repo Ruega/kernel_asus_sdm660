@@ -110,9 +110,7 @@ static void tcp_rack_detect_loss(struct sock *sk, u32 *reo_timeout)
 	return prior_retrans - tp->retrans_out;
 }
 
-/* Record the most recently (re)sent time among the (s)acked packets */
-void tcp_rack_advance(struct tcp_sock *tp,
-		      const struct skb_mstamp *xmit_time, u8 sacked)
+void tcp_rack_mark_lost(struct sock *sk)
 {
 	struct tcp_sock *tp = tcp_sk(sk);
 	u32 timeout;
