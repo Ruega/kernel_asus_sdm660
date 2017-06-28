@@ -132,6 +132,7 @@ void tty_buffer_free_all(struct tty_port *port)
 	buf->tail = &buf->sentinel;
 
 	atomic_set(&buf->mem_used, 0);
+	kthread_stop(port->worker_thread);
 }
 
 /**
@@ -472,7 +473,7 @@ receive_buf(struct tty_struct *tty, struct tty_buffer *head, int count)
  *		 'consumer'
  */
 
-static void flush_to_ldisc(struct work_struct *work)
+static void flush_to_ldisc(struct kthread_work *work)
 {
 	struct tty_port *port = container_of(work, struct tty_port, buf.work);
 	struct tty_bufhead *buf = &port->buf;
@@ -562,7 +563,6 @@ void tty_buffer_init(struct tty_port *port)
 	init_llist_head(&buf->free);
 	atomic_set(&buf->mem_used, 0);
 	atomic_set(&buf->priority, 0);
-	INIT_WORK(&buf->work, flush_to_ldisc);
 	buf->mem_limit = TTYB_DEFAULT_MEM_LIMIT;
 	kthread_init_work(&buf->work, flush_to_ldisc);
 	kthread_init_worker(&port->worker);
@@ -608,7 +608,7 @@ bool tty_buffer_restart_work(struct tty_port *port)
 
 bool tty_buffer_cancel_work(struct tty_port *port)
 {
-	return cancel_work_sync(&port->buf.work);
+	return kthread_cancel_work_sync(&port->buf.work);
 }
 
 void tty_buffer_flush_work(struct tty_port *port)
