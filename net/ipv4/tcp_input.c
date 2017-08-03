@@ -3738,7 +3738,7 @@ static int tcp_ack(struct sock *sk, const struct sk_buff *skb, int flag)
 			dst_confirm(dst);
 	}
 
-	delivered = tcp_newly_delivered(sk, delivered, flag);
+	delivered = tp->delivered - delivered;	/* freshly ACKed or SACKed */
 	lost = tp->lost - lost;			/* freshly marked lost */
 	tcp_rate_gen(sk, delivered, lost, sack_state.rate);
 	rs.is_ack_delayed = !!(flag & FLAG_ACK_MAYBE_DELAYED);
