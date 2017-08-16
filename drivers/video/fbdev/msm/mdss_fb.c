@@ -100,6 +100,9 @@ static void asus_lcd_early_unblank_func(struct work_struct *);
 static struct workqueue_struct *asus_lcd_early_unblank_wq;
 extern int g_resume_from_fp;
 
+int backlight_min = 0;
+module_param(backlight_min, int, 0644);
+
 static struct fb_info *fbi_list[MAX_FBI_LIST];
 static int fbi_list_index;
 
@@ -307,6 +310,10 @@ static void mdss_fb_set_bl_brightness(struct led_classdev *led_cdev,
 
 	if (value > mfd->panel_info->brightness_max)
 		value = mfd->panel_info->brightness_max;
+
+	// Boeffla: apply min limits for LCD backlight (0 is exception for display off)
+	if (value != 0 && value < backlight_min)
+		value = backlight_min;
 
 	if (backlight_dimmer) {
 		MDSS_BRIGHT_TO_BL_DIM(bl_lvl, value);
