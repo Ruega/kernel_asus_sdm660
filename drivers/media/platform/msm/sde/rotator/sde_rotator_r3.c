@@ -49,56 +49,37 @@
 /* Macro for constructing the REGDMA command */
 #define SDE_REGDMA_WRITE(p, off, data) \
 	do { \
-		SDEROT_DBG("SDEREG.W:[%s:0x%X] <= 0x%X\n", #off, (off),\
-				(u32)(data));\
-		writel_relaxed_no_log( \
-				(REGDMA_OP_REGWRITE | \
-				 ((off) & REGDMA_ADDR_OFFSET_MASK)), \
-				p); \
-		p += sizeof(u32); \
-		writel_relaxed_no_log(data, p); \
-		p += sizeof(u32); \
+		writel_relaxed(REGDMA_OP_REGWRITE | \
+			((off) & REGDMA_ADDR_OFFSET_MASK), (p)); \
+		(p)++; \
+		writel_relaxed((data), (p)); \
+		(p)++; \
 	} while (0)
 
 #define SDE_REGDMA_MODIFY(p, off, mask, data) \
 	do { \
-		SDEROT_DBG("SDEREG.M:[%s:0x%X] <= 0x%X\n", #off, (off),\
-				(u32)(data));\
-		writel_relaxed_no_log( \
-				(REGDMA_OP_REGMODIFY | \
-				 ((off) & REGDMA_ADDR_OFFSET_MASK)), \
-				p); \
-		p += sizeof(u32); \
-		writel_relaxed_no_log(mask, p); \
-		p += sizeof(u32); \
-		writel_relaxed_no_log(data, p); \
-		p += sizeof(u32); \
+		writel_relaxed(REGDMA_OP_REGMODIFY | \
+			((off) & REGDMA_ADDR_OFFSET_MASK), (p)); \
+		(p)++; \
+		writel_relaxed((mask), (p)); \
+		(p)++; \
+		writel_relaxed((data), (p)); \
+		(p)++; \
 	} while (0)
 
 #define SDE_REGDMA_BLKWRITE_INC(p, off, len) \
 	do { \
-		SDEROT_DBG("SDEREG.B:[%s:0x%X:0x%X]\n", #off, (off),\
-				(u32)(len));\
-		writel_relaxed_no_log( \
-				(REGDMA_OP_BLKWRITE_INC | \
-				 ((off) & REGDMA_ADDR_OFFSET_MASK)), \
-				p); \
-		p += sizeof(u32); \
-		writel_relaxed_no_log(len, p); \
-		p += sizeof(u32); \
+		writel_relaxed(REGDMA_OP_BLKWRITE_INC | \
+			((off) & REGDMA_ADDR_OFFSET_MASK), (p)); \
+		(p)++; \
+		writel_relaxed((len), (p)); \
+		(p)++; \
 	} while (0)
 
 #define SDE_REGDMA_BLKWRITE_DATA(p, data) \
 	do { \
-		SDEROT_DBG("SDEREG.I:[:] <= 0x%X\n", (u32)(data));\
-		writel_relaxed_no_log(data, p); \
-		p += sizeof(u32); \
-	} while (0)
-
-#define SDE_REGDMA_READ(p, data) \
-	do { \
-		data = readl_relaxed_no_log(p); \
-		p += sizeof(u32); \
+		writel_relaxed((data), (p)); \
+		(p)++; \
 	} while (0)
 
 /* Macro for directly accessing mapped registers */
