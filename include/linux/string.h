@@ -170,34 +170,15 @@ static inline const char *kbasename(const char *path)
 	return tail ? tail + 1 : path;
 }
 
-/*
- * Replace some common string helpers with faster alternatives when one of the
- * arguments is a constant (i.e., literal string). This uses strlen instead of
- * sizeof for calculating the string length in order to silence compiler
- * warnings that may arise due to what the compiler thinks is incorrect sizeof
- * usage. The strlen calls on constants are folded into scalar values at compile
- * time, so performance is not reduced by using strlen.
+/**
+ * Macro to get length of definite strings
+ *
+ * strlen is often used incorectly to get the
+ * length of strings defined at compile time.
+ * DSTRLEN can be used in place of strlen in
+ * these situations. - Joe Maples
  */
-#define strcpy(dest, src)							\
-	__builtin_choose_expr(__builtin_constant_p(src),			\
-		memcpy((dest), (src), strlen(src) + 1),				\
-		(strcpy)((dest), (src)))
-
-#define strcat(dest, src)							\
-	__builtin_choose_expr(__builtin_constant_p(src),			\
-		({								\
-			memcpy((dest) + strlen(dest), (src), strlen(src) + 1);	\
-			(dest);							\
-		}),								\
-		(strcat)((dest), (src)))
-
-#define strcmp(left, right)							\
-	__builtin_choose_expr(__builtin_constant_p(left),			\
-		__builtin_choose_expr(__builtin_constant_p(right),		\
-			(strcmp)((left), (right)),				\
-			memcmp((left), (right), strlen(left) + 1)),		\
-		__builtin_choose_expr(__builtin_constant_p(right),		\
-			memcmp((left), (right), strlen(right) + 1),		\
-			(strcmp)((left), (right))))
+#define DSTRLEN(X) \
+  sizeof(X) - 1
 
 #endif /* _LINUX_STRING_H_ */
