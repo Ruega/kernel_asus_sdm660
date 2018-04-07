@@ -397,7 +397,7 @@ static struct msm_rpm_master_stats_platform_data
 			goto err;
 		rpm_master_name_len = strlen(master_name);
 		strlcpy(pdata->masters[i], master_name,
-					rpm_master_name_len + 1);
+					strlen(pdata->masters[i]) + 1);
 	}
 	return pdata;
 err:
