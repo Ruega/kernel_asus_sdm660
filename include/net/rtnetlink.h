@@ -57,7 +57,7 @@ struct rtnl_link_ops {
 	size_t			priv_size;
 	void			(*setup)(struct net_device *dev);
 
-	int			maxtype;
+	unsigned int		maxtype;
 	const struct nla_policy	*policy;
 	int			(*validate)(struct nlattr *tb[],
 					    struct nlattr *data[]);
@@ -84,6 +84,7 @@ struct rtnl_link_ops {
 
 	bool			netns_refund;
 	int			slave_maxtype;
+	unsigned int		slave_maxtype;
 	const struct nla_policy	*slave_policy;
 	int			(*slave_validate)(struct nlattr *tb[],
 						  struct nlattr *data[]);
