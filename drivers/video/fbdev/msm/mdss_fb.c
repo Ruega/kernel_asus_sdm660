@@ -46,6 +46,7 @@
 #include <linux/file.h>
 #include <linux/kthread.h>
 #include <linux/dma-buf.h>
+#include <linux/cpu_input_boost.h>
 #include <sync.h>
 #include <sw_sync.h>
 #include <linux/cpu_input_boost.h>
