@@ -771,6 +771,11 @@ static inline u32 tcp_stamp_us_delta(u64 t1, u64 t0)
 	return max_t(s64, t1 - t0, 0);
 }
 
+static inline u32 tcp_stamp32_us_delta(u32 t1, u32 t0)
+{
+	return max_t(s32, t1 - t0, 0);
+}
+
 static inline u32 tcp_skb_timestamp(const struct sk_buff *skb)
 {
 	return div_u64(skb->skb_mstamp, USEC_PER_SEC / TCP_TS_HZ);
@@ -840,6 +845,7 @@ struct tcp_skb_cb {
 			u32 first_tx_mstamp;
 			/* when we reached the "delivered" count */
 			u32 delivered_mstamp;
+
 #define TCPCB_IN_FLIGHT_BITS 20
 #define TCPCB_IN_FLIGHT_MAX ((1U << TCPCB_IN_FLIGHT_BITS) - 1)
 			u32 in_flight:20,   /* packets in flight at transmit */
