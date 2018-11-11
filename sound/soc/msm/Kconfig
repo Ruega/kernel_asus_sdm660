@@ -128,7 +128,6 @@ config SND_SOC_INT_CODEC
 	select DTS_SRS_TM
 	select SND_HWDEP
 	select MSM_ULTRASOUND
-	select SND_SOC_SDM660_COMMON
 	select SND_SOC_COMPRESS
 	select PINCTRL_LPI
 	help
@@ -161,7 +160,6 @@ config SND_SOC_EXT_CODEC
 	select SND_SOC_WCD_CPE
 	select SND_HWDEP
 	select MSM_ULTRASOUND
-	select SND_SOC_SDM660_COMMON
 	select SND_SOC_COMPRESS
 	select PINCTRL_LPI
 	help
@@ -242,7 +240,7 @@ config SND_SOC_MSM8998
 	 the machine driver and the corresponding
 	 DAI-links
 
-config SND_SOC_660
+config SND_SOC_SDM660_COMMON
 	tristate "SoC Machine driver for SDM660 boards"
 	depends on ARCH_SDM660
 	select SND_SOC_INT_CODEC
