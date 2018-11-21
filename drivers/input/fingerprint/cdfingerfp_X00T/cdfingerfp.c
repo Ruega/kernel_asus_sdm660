@@ -100,7 +100,7 @@ struct cdfinger_key_map {
 static int isInKeyMode = 0; // key mode
 static int irq_flag = 0;
 static int screen_status = 1; // screen on
-static u8 cdfinger_debug = 0x01;
+static u8 cdfinger_debug = 0x00;
 static char wake_flag = 0;
 #define CDFINGER_DBG(fmt, args...) \
 	do{ \
@@ -642,7 +642,6 @@ static int cdfinger_fb_notifier_callback(struct notifier_block* self,
 		sched_set_boost(0);
 /* Huaqin modify for cpu_boost by leiyu at 2018/04/25 end */
 #endif
-		printk("sunlin==FB_BLANK_UNBLANK==\n");
             break;
         case FB_BLANK_POWERDOWN:
 		mutex_lock(&g_cdfingerfp_data->buf_lock);
@@ -650,7 +649,6 @@ static int cdfinger_fb_notifier_callback(struct notifier_block* self,
 		if (isInKeyMode == 0)
 			cdfinger_async_report();
 		mutex_unlock(&g_cdfingerfp_data->buf_lock);
-		printk("sunlin==FB_BLANK_POWERDOWN==\n");
             break;
         default:
             break;
