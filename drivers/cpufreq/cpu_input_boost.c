@@ -45,9 +45,20 @@ struct boost_drv {
 	atomic64_t max_boost_expires;
 	atomic_t max_boost_dur;
 	atomic_t state;
+	atomic64_t prev_input_jiffies;
 };
 
 static struct boost_drv *boost_drv_g;
+
+bool cpu_input_boost_within_timeout(unsigned int input_boost_timeout) {
+	struct boost_drv *b = boost_drv_g;
+
+	if (!b)
+		return false;
+
+	return time_before(jiffies, atomic_read(&b->prev_input_jiffies)
+		+ msecs_to_jiffies(input_boost_timeout));
+}
 
 static u32 get_boost_freq(struct boost_drv *b, u32 cpu)
 {
@@ -251,6 +262,7 @@ static void cpu_input_boost_input_event(struct input_handle *handle,
 	if (!(state & SCREEN_AWAKE))
 		return;
 
+	atomic64_set(&b->prev_input_jiffies, jiffies);
 	queue_work(b->wq, &b->input_boost);
 }
 
@@ -346,7 +358,6 @@ static int __init cpu_input_boost_init(void)
 	INIT_DELAYED_WORK(&b->input_unboost, input_unboost_worker);
 	INIT_WORK(&b->max_boost, max_boost_worker);
 	INIT_DELAYED_WORK(&b->max_unboost, max_unboost_worker);
-	b->state = SCREEN_AWAKE;
 	atomic_set(&b->state, 0);
 
 	b->cpu_notif.notifier_call = cpu_notifier_cb;
