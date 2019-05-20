@@ -74,7 +74,7 @@ struct step_chg_info {
 
 static struct step_chg_info *the_chip;
 
-#define STEP_CHG_HYSTERISIS_DELAY_US		5000000 /* 5 secs */
+#define STEP_CHG_HYSTERISIS_DELAY_US		2500000 /* 5 secs */
 
 /*
  * Step Charging Configuration
