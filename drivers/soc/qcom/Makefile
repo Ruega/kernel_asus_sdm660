@@ -123,7 +123,9 @@ obj-$(CONFIG_QCOM_QDSS_BRIDGE) += qdss_bridge.o
 obj-$(CONFIG_MFSE_QMI) += mfse_qmi_v01.o mfse_qmi.o
 obj-$(CONFIG_STATE_NOTIFIER) += state_notifier.o
 
-# TODO: remove me b/62058353
-subdir-ccflags-y += \
-	-Wno-ignored-attributes \
-	-Wno-gcc-compat
+ifeq ($(CONFIG_ANDROID),y)
+CFLAGS_rpm_stats.o += -DCONFIG_DEBUG_FS
+CFLAGS_rpm_master_stat.o += -DCONFIG_DEBUG_FS
+CFLAGS_rpm_rail_stats.o += -DCONFIG_DEBUG_FS
+CFLAGS_system_stats.o += -DCONFIG_DEBUG_FS
+endif
