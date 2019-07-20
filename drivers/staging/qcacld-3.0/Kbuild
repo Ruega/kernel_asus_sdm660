@@ -263,6 +263,16 @@ CONFIG_WLAN_SPECTRAL_SCAN := y
 # Flag to enable Android Packet Filtering
 CONFIG_WLAN_FEATURE_APF := y
 
+#Enable WLAN/Power debugfs feature only if debug_fs is enabled
+ifeq ($(CONFIG_ANDROID), y)
+       # Flag to enable debugfs. Depends on CONFIG_DEBUG_FS in kernel
+       # configuration.
+       CONFIG_WLAN_DEBUGFS := y
+       CFLAGS_wlan_hdd_debugfs.o += -DCONFIG_DEBUG_FS
+
+       CONFIG_WLAN_POWER_DEBUGFS := y
+endif
+
 # If not set, assume, Common driver is with in the build tree
 WLAN_COMMON_ROOT ?= ../qca-wifi-host-cmn
 WLAN_COMMON_INC ?= $(WLAN_ROOT)/$(WLAN_COMMON_ROOT)
