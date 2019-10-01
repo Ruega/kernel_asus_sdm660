@@ -2789,7 +2789,6 @@ static int smb2_resume(struct device *dev)
 	 */
 	nextJEITAinterval = 60 - (mtNow.tv_sec - last_jeita_time.tv_sec);
 	if (nextJEITAinterval <= JEITA_MINIMUM_INTERVAL) {
-		smblib_asus_monitor_start(smbchg_dev, 0);
 		cancel_delayed_work(&smbchg_dev->asus_batt_RTC_work);
 	} else {
 		smblib_asus_monitor_start(smbchg_dev, nextJEITAinterval * 1000);

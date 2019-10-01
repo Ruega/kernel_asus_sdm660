@@ -3819,7 +3819,6 @@ void asus_min_monitor_work(struct work_struct *work)
 		last_jeita_time = current_kernel_time();
 		schedule_delayed_work(&smbchg_dev->asus_min_monitor_work,
 					msecs_to_jiffies(ASUS_MONITOR_CYCLE));
-		schedule_delayed_work(&smbchg_dev->asus_batt_RTC_work, 0);
 	}
 
 	asus_smblib_relax(smbchg_dev);
