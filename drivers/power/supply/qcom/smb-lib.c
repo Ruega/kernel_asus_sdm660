@@ -3529,8 +3529,7 @@ static int SW_recharge(struct smb_charger *chg)
 		 * bit0=1, CHARGING_ENABLE_CMD_IS_ACTIVE
 		 */
 		rc = smblib_masked_write(chg, CHARGING_ENABLE_CMD_REG,
-						CHARGING_ENABLE_CMD_BIT,
-						CHARGING_ENABLE_CMD_BIT);
+						CHARGING_ENABLE_CMD_BIT, 1);
 		if (rc < 0) {
 			pr_err("%s: Couldn't write charging_enable\n",
 				__func__);
