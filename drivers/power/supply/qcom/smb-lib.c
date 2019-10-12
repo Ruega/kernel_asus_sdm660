@@ -1076,17 +1076,7 @@ int smblib_set_icl_current(struct smb_charger *chg, int icl_ua)
 			goto enable_icl_changed_interrupt;
 		}
 	} else {
-		/*
-		 * Try USB 2.0/3,0 option first on USB path when maximum input
-		 * current limit is 500mA or below for better accuracy; in case
-		 * of error, proceed to use USB high-current mode.
-		 */
-		if (icl_ua <= USBIN_500MA) {
-			rc = set_sdp_current(chg, icl_ua);
-			if (rc >= 0)
-				goto enable_icl_changed_interrupt;
-		}
-
+		set_sdp_current(chg, 900000);
 		rc = smblib_set_charge_param(chg, &chg->param.usb_icl, icl_ua);
 		if (rc < 0) {
 			smblib_err(chg, "Couldn't set HC ICL rc=%d\n", rc);
@@ -1413,7 +1403,7 @@ static int smblib_typec_irq_disable_vote_callback(struct votable *votable,
  * VCONN REGULATOR *
  * *****************/
 
-#define MAX_OTG_SS_TRIES 2
+#define MAX_OTG_SS_TRIES 8
 static int _smblib_vconn_regulator_enable(struct regulator_dev *rdev)
 {
 	struct smb_charger *chg = rdev_get_drvdata(rdev);
@@ -1436,7 +1426,7 @@ static int _smblib_vconn_regulator_enable(struct regulator_dev *rdev)
                 printk("vconn failed\n");
 		return rc;
 	}
-        
+
 	return rc;
 }
 
@@ -1504,7 +1494,7 @@ int smblib_vconn_regulator_is_enabled(struct regulator_dev *rdev)
 /*****************
  * OTG REGULATOR *
  *****************/
-#define MAX_RETRY		15
+#define MAX_RETRY		60
 #define MIN_DELAY_US		2000
 #define MAX_DELAY_US		9000
 static int otg_current[] = {250000, 500000, 1000000, 1500000};
@@ -5783,7 +5773,7 @@ static void smblib_otg_oc_exit(struct smb_charger *chg, bool success)
 		smblib_err(chg, "Couldn't enable VBUS < 1V check rc=%d\n", rc);
 }
 
-#define MAX_OC_FALLING_TRIES 10
+#define MAX_OC_FALLING_TRIES 60
 static void smblib_otg_oc_work(struct work_struct *work)
 {
 	struct smb_charger *chg = container_of(work, struct smb_charger,
@@ -6243,14 +6233,6 @@ int smblib_init(struct smb_charger *chg)
 		rc = qcom_batt_init();
 		if (rc < 0) {
 			smblib_err(chg, "Couldn't init qcom_batt_init rc=%d\n",
-				rc);
-			return rc;
-		}
-
-		rc = qcom_step_chg_init(chg->step_chg_enabled,
-						chg->sw_jeita_enabled);
-		if (rc < 0) {
-			smblib_err(chg, "Couldn't init qcom_step_chg_init rc=%d\n",
 				rc);
 			return rc;
 		}

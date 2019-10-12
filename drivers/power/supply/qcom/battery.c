@@ -331,8 +331,8 @@ static struct class_attribute pl_attributes[] = {
 /***********
  *  TAPER  *
 ************/
-#define MINIMUM_PARALLEL_FCC_UA		500000
-#define PL_TAPER_WORK_DELAY_MS		500
+#define MINIMUM_PARALLEL_FCC_UA		100000
+#define PL_TAPER_WORK_DELAY_MS		100
 #define TAPER_RESIDUAL_PCT		75
 static void pl_taper_work(struct work_struct *work)
 {
@@ -390,8 +390,8 @@ done:
  *  FCC  *
 **********/
 #define EFFICIENCY_PCT	80
-#define FCC_STEP_SIZE_UA 100000
-#define FCC_STEP_UPDATE_DELAY_MS 1000
+#define FCC_STEP_SIZE_UA 1000000
+#define FCC_STEP_UPDATE_DELAY_MS 100
 #define STEP_UP 1
 #define STEP_DOWN -1
 static void get_fcc_split(struct pl_data *chip, int total_ua,
@@ -463,17 +463,13 @@ static void get_fcc_step_update_params(struct pl_data *chip, int main_fcc_ua,
 
 	chip->main_step_fcc_dir = (main_fcc_ua > pval.intval) ?
 				STEP_UP : STEP_DOWN;
-	chip->main_step_fcc_count = abs((main_fcc_ua - pval.intval) /
-				FCC_STEP_SIZE_UA);
-	chip->main_step_fcc_residual = (main_fcc_ua - pval.intval) %
-				FCC_STEP_SIZE_UA;
+	chip->main_step_fcc_count = FCC_STEP_SIZE_UA;
+	chip->main_step_fcc_residual = FCC_STEP_SIZE_UA;
 
 	chip->parallel_step_fcc_dir = (parallel_fcc_ua > chip->slave_fcc_ua) ?
 				STEP_UP : STEP_DOWN;
-	chip->parallel_step_fcc_count = abs((parallel_fcc_ua -
-				chip->slave_fcc_ua) / FCC_STEP_SIZE_UA);
-	chip->parallel_step_fcc_residual = (parallel_fcc_ua -
-				chip->slave_fcc_ua) % FCC_STEP_SIZE_UA;
+	chip->parallel_step_fcc_count = FCC_STEP_SIZE_UA;
+	chip->parallel_step_fcc_residual = FCC_STEP_SIZE_UA;
 
 	pr_debug("Main FCC Stepper parameters: main_step_direction: %d, main_step_count: %d, main_residual_fcc: %d\n",
 		chip->main_step_fcc_dir, chip->main_step_fcc_count,
@@ -662,25 +658,6 @@ static void fcc_step_update_work(struct work_struct *work)
 		goto stepper_exit;
 	}
 
-	if (chip->main_step_fcc_count) {
-		main_fcc += (FCC_STEP_SIZE_UA * chip->main_step_fcc_dir);
-		chip->main_step_fcc_count--;
-		reschedule_ms = FCC_STEP_UPDATE_DELAY_MS;
-	} else if (chip->main_step_fcc_residual) {
-		main_fcc += chip->main_step_fcc_residual;
-		chip->main_step_fcc_residual = 0;
-	}
-
-	if (chip->parallel_step_fcc_count) {
-		parallel_fcc += (FCC_STEP_SIZE_UA *
-			chip->parallel_step_fcc_dir);
-		chip->parallel_step_fcc_count--;
-		reschedule_ms = FCC_STEP_UPDATE_DELAY_MS;
-	} else if (chip->parallel_step_fcc_residual) {
-		parallel_fcc += chip->parallel_step_fcc_residual;
-		chip->parallel_step_fcc_residual = 0;
-	}
-
 	if (chip->pl_mode == POWER_SUPPLY_PL_NONE ||
 		get_effective_result_locked(chip->pl_disable_votable)) {
 		/* Set Parallel FCC */
@@ -833,8 +810,8 @@ static int pl_fv_vote_callback(struct votable *votable, void *data,
 	return 0;
 }
 
-#define ICL_STEP_UA	25000
-#define PL_DELAY_MS     3000
+#define ICL_STEP_UA	1000000
+#define PL_DELAY_MS     100
 static int usb_icl_vote_callback(struct votable *votable, void *data,
 			int icl_ua, const char *client)
 {
