@@ -1248,13 +1248,12 @@ static int fg_awake_cb(struct votable *votable, void *data, int awake,
 {
 	struct fg_chip *chip = data;
 
-	if (awake) {
+	if (awake)
 		pm_stay_awake(chip->dev);
-	} else {
+	else
 		pm_relax(chip->dev);
-	}
 
-	pr_info("client: %s awake: %d\n", client, awake);
+	pr_debug("client: %s awake: %d\n", client, awake);
 	return 0;
 }
 

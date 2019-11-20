@@ -32,6 +32,7 @@
 #include <linux/gpio.h>
 #include <linux/fs.h>
 #include <linux/alarmtimer.h>
+#include <linux/wakelock.h>
 #include <linux/unistd.h>
 #include <linux/fcntl.h>
 #include <linux/slab.h>
@@ -144,15 +145,15 @@ static void asus_smblib_rerun_aicl(struct smb_charger *chg)
 				USBIN_AICL_EN_BIT, 1);
 }
 
-extern struct wakeup_source asus_chg_lock;
+extern struct wake_lock asus_chg_lock;
 void asus_smblib_stay_awake(struct smb_charger *chg)
 {
-	pm_stay_awake(&asus_chg_lock);
+	wake_lock(&asus_chg_lock);
 }
 
 void asus_smblib_relax(struct smb_charger *chg)
 {
-	pm_relax(&asus_chg_lock);
+	wake_unlock(&asus_chg_lock);
 }
 #endif
 
@@ -1224,11 +1225,10 @@ static int smblib_awake_vote_callback(struct votable *votable, void *data,
 {
 	struct smb_charger *chg = data;
 
-	if (awake) {
+	if (awake)
 		pm_stay_awake(chg->dev);
-	} else {
+	else
 		pm_relax(chg->dev);
-	}
 
 	return 0;
 }
