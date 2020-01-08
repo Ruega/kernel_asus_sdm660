@@ -40,7 +40,6 @@
 #include <linux/regulator/consumer.h>
 #include <linux/fb.h>
 #include <linux/notifier.h>
-#include <linux/moduleparam.h>
 
 struct cdfinger_key_map {
 	unsigned int type;
@@ -92,18 +91,12 @@ struct cdfinger_key_map {
 #define DEVICE_NAME "fpsdev0"
 #define INPUT_DEVICE_NAME "cdfinger_input"
 
-#define TRIGGER_COUNT_LIMIT 50
 #define WAKELOCK_HOLD_TIME 1500
 
 static int isInKeyMode = 0; /* key mode */ 
 static int screen_status = 1; /* screen on */
 static u8 cdfinger_debug = 0x01;
 static bool isInit = false;
-static unsigned int trigger_count = 0;
-static unsigned long sleep_time = 0;
-
-static __read_mostly unsigned int fp_limit_enabled = 0;
-module_param(fp_limit_enabled, uint, 0644);
 
 #define CDFINGER_DBG(fmt, args...) \
 	do{ \
@@ -336,25 +329,10 @@ static int cdfinger_init_irq(struct cdfingerfp_data *pdata)
 
 static void cdfinger_enable_irq(struct cdfingerfp_data *pdata)
 {
-	if (pdata->irq_enabled) {
-		return;
-	}
-
-	if (screen_status == 0 && time_after(jiffies, sleep_time + msecs_to_jiffies(60000))) {
-		trigger_count = trigger_count + 1;
-	}
-
-	if (screen_status == 1 || 
-		trigger_count < TRIGGER_COUNT_LIMIT ||
-						fp_limit_enabled < 1) {
+	if (!(pdata->irq_enabled)) {
 		enable_irq(gpio_to_irq(pdata->irq_num));
 		enable_irq_wake(gpio_to_irq(pdata->irq_num));
 		pdata->irq_enabled = true;
-	} else {
-		disable_irq_wake(gpio_to_irq(pdata->irq_num));
-		disable_irq(gpio_to_irq(pdata->irq_num));
-		pdata->irq_enabled = false;
-		wake_unlock(&pdata->cdfinger_lock);
 	}
 }
 
@@ -464,7 +442,6 @@ static int cdfinger_fb_notifier_callback(struct notifier_block* self,
 		case FB_BLANK_UNBLANK:
 			mutex_lock(&g_cdfingerfp_data->buf_lock);
 			screen_status = 1;
-			trigger_count = 0;
 			cdfinger_async_report();
 			mutex_unlock(&g_cdfingerfp_data->buf_lock);
 			break;
@@ -472,7 +449,6 @@ static int cdfinger_fb_notifier_callback(struct notifier_block* self,
 		case FB_BLANK_POWERDOWN:
 			mutex_lock(&g_cdfingerfp_data->buf_lock);
 			screen_status = 0;
-			sleep_time = jiffies;
 			cdfinger_async_report();
 			mutex_unlock(&g_cdfingerfp_data->buf_lock);
 			break;
