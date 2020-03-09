@@ -71,9 +71,6 @@
 #define TOUCH_DEFAULT_MAX_HEIGHT 1920
 #define TOUCH_MAX_FINGER_NUM 10
 #define TOUCH_KEY_NUM 0
-#if TOUCH_KEY_NUM > 0
-extern const uint16_t touch_key_array[TOUCH_KEY_NUM];
-#endif
 #define TOUCH_FORCE_NUM 1000
 
 /* Enable only when module have tp reset pin and connected to host */
@@ -105,7 +102,6 @@ struct nvt_ts_data {
 	uint16_t abs_x_max;
 	uint16_t abs_y_max;
 	uint8_t max_touch_num;
-	uint8_t max_button_num;
 	uint32_t int_trigger_type;
 	int32_t irq_gpio;
 	uint32_t irq_flags;
