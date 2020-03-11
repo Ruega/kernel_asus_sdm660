@@ -13,7 +13,6 @@
 #include "config.h"
 
 #include "tfa_service.h"  //TODO cleanup for enum Tfa98xx_Status_ID
-
 /**
  * Return a text version of the firmware status ID code
  * @param status the given status ID code

@@ -6,7 +6,6 @@
  * published by the Free Software Foundation.
  *
  */
-
 /**\file
  *
  * The tfa_device interface controls a single I2C device instance by
