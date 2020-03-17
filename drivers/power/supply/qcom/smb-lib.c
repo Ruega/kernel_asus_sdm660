@@ -32,9 +32,6 @@
 /* Huaqin add for ZQL1650-68 Realize jeita function by fangaijun at 2018/02/03 start */
 #include "fg-core.h"
 #include <linux/gpio.h>
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 start */
-#include <linux/fs.h>
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 end */
 #include <linux/alarmtimer.h>
 #include <linux/wakelock.h>
 #include <linux/unistd.h>
@@ -92,10 +89,8 @@ void smblib_asus_monitor_start(struct smb_charger *chg, int time);
 extern struct switch_dev usb_otg_dev;
 //Huaqin added by tangqingyong at 20180212 for usb_otg end
 
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 start */
-extern bool demo_app_property_flag;
 bool smartchg_stop_flag = 0;
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 end */
+
 /* Huaqin add for ZQL1650-281 by diganyun at 2018/02/08 start */
 extern int charger_limit_enable_flag;
 extern int charger_limit_value;
@@ -3497,12 +3492,6 @@ void asus_batt_RTC_work(struct work_struct *dat)
 #define VADC_THD_900MV  900
 #define VADC_THD_1000MV  1000
 
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 start */
-#define	DEMO_DISCHG_THD			60
-#define	DEMO_CHG_THD			58
-//#define	DEMO_NON_CHG_THD	58
-int demo_chg_status = DEMO_CHG_THD;
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 end */
 
 //ASUS BSP Add per min monitor jeita & thermal & typeC_DFP +++
 void smblib_asus_monitor_start(struct smb_charger *chg, int time)
@@ -3733,9 +3722,6 @@ void jeita_rule(void)
 	u8 FCC_reg;
 	u8 USBIN_ICL_reg;
 /* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 start */
-	bool demo_stop_charging_flag = 0;
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 end */
 	printk("enter jeita_rule\n");
 	rc = smblib_write(smbchg_dev, JEITA_EN_CFG_REG, 0x10);         //reg1090   0x10 =bit4=1     JEITA_EN_HARDLIMIT=enable     JEITA Temperature Hard Limit Pauses Charging
 	if (rc < 0)
@@ -3859,43 +3845,11 @@ void jeita_rule(void)
 		printk("%s: temperature >= 60\n", __func__);
 		break;
 	}
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 start */
-	if (demo_app_property_flag) {
-			if(bat_capacity >= DEMO_DISCHG_THD)
-				demo_chg_status = DEMO_DISCHG_THD;
-			//else if(bat_capacity >= DEMO_NON_CHG_THD)
-			//	demo_chg_status = DEMO_NON_CHG_THD;
-			// need not set status detween DEMO_CHG_THD and DEMO_NON_CHG_THD
-			else if(bat_capacity <= DEMO_CHG_THD)
-				demo_chg_status = DEMO_CHG_THD;
-			else;
 
-			if(demo_chg_status == DEMO_DISCHG_THD){
-				smblib_set_usb_suspend(smbchg_dev, true);
-				printk("demo_app stop usb charging  ---");
-			}
-			else if(!usb_alert_usb_otg_disable){
-//Huaqin add for ZQL1650-26 by diganyun at 2018/02/11 when usb alert do not resume usb
-				smblib_set_usb_suspend(smbchg_dev, false);
-				printk("demo_app resume usb charging  ---");
-				}
-			else;
-
-			if(demo_chg_status == DEMO_CHG_THD)
-				demo_stop_charging_flag = false;
-			else
-				demo_stop_charging_flag = true;
-	}
-
-	printk("%s: soc = %d, demo_flag = %d, stop_flag = %d \n",
-		__func__, bat_capacity, demo_app_property_flag, demo_stop_charging_flag);
-
-	if (smartchg_stop_flag || demo_stop_charging_flag) {
-		printk("%s: Stop charging, smart = %d, demo = %d\n", __func__, smartchg_stop_flag, demo_stop_charging_flag);
+	if (smartchg_stop_flag) {
+		printk("%s: Stop charging, smart = %d\n", __func__, smartchg_stop_flag);
 		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
 	}
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 end */
-
 
 	rc = jeita_status_regs_write(charging_enable, FV_CFG_reg_value, FCC_reg_value);
 	if (rc < 0)

@@ -206,9 +206,6 @@ struct timespec last_jeita_time;
 /* Huaqin add for ZQL1650-68 systme suspend 1 min run sw jeita by fangaijun at 2018/02/06 end */
 struct wake_lock asus_chg_lock;
 /* Huaqin add for ZQL1650-68 Realize jeita function by fangaijun at 2018/02/03 end */
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 start */
-bool demo_app_property_flag = 0;
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 end */
 /* Huaqin add for ZQL1650-68 systme suspend 1 min run sw jeita by fangaijun at 2018/02/06 start */
 extern void smblib_asus_monitor_start(struct smb_charger *chg, int time);
 extern bool asus_get_prop_usb_present(struct smb_charger *chg);
@@ -2539,40 +2536,6 @@ static void remove_proc_charger_limit(void)
 }
 /* Huaqin add for ZQL1650-281 by diganyun at 2018/02/08 end */
 
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 start */
-static ssize_t demo_app_property_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t len)
-{
-	int tmp = 0;
-	tmp = buf[0] - 48;
-	CHG_DBG_E("%s: tmp = %d \n", __func__,tmp);//dgy add log
-	if (tmp == 0) {
-		demo_app_property_flag = false;
-		CHG_DBG("%s: demo_app_property_flag = 0\n", __func__);
-	} else if (tmp == 1) {
-		demo_app_property_flag = true;
-		CHG_DBG("%s: demo_app_property_flag = 1\n", __func__);
-	}
-	return len;
-}
-
-static ssize_t demo_app_property_show(struct device *dev, struct device_attribute *attr, char *buf)
-{
-       return sprintf(buf, "%d\n", demo_app_property_flag);
-}
-
-static DEVICE_ATTR(demo_app_property, 0664, demo_app_property_show, demo_app_property_store);
-
-static struct attribute *asus_smblib_attrs[] = {
-	&dev_attr_demo_app_property.attr,
-	NULL
-};
-
-static const struct attribute_group asus_smblib_attr_group = {
-	.attrs = asus_smblib_attrs,
-};
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 end */
-
 /* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
 int32_t get_ID_vadc_voltage(void){
 	struct qpnp_vadc_chip *vadc_dev;
@@ -2772,13 +2735,6 @@ static int smb2_probe(struct platform_device *pdev)
 		goto cleanup;
 	}
 
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 start */
-	rc = sysfs_create_group(&chg->dev->kobj, &asus_smblib_attr_group);
-	if (rc < 0) {
-		pr_err("create node demo_app_property failed!! rc=%d\n", rc);
-		goto cleanup;
-	}
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 end */
 /* Huaqin add for ZQL1650-281 by diganyun at 2018/02/08 start */
 	init_proc_charger_limit();
 /* Huaqin add for ZQL1650-281 by diganyun at 2018/02/08 end */
@@ -2863,9 +2819,6 @@ cleanup:
 	smblib_deinit(chg);
 
 	platform_set_drvdata(pdev, NULL);
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 start */
-	sysfs_remove_group(&chg->dev->kobj, &asus_smblib_attr_group);
-/* Huaqin add for ZQL1650-26 by diganyun at 2018/02/06 end */
 /* Huaqin add for ZQL1650-281 by diganyun at 2018/02/08 start */
 	remove_proc_charger_limit();
 /* Huaqin add for ZQL1650-281 by diganyun at 2018/02/08 end */
