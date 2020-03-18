@@ -22,17 +22,7 @@
 #include <linux/qpnp/qpnp-revid.h>
 #include "fg-core.h"
 #include "fg-reg.h"
-//Huaqin add by jianghao at 2019/05/13 start
-#include <linux/proc_fs.h>
-#include <linux/mm.h>
-#include <linux/syscalls.h>
-#include <linux/reboot.h>
-#include <linux/rtc.h>
-//Huaqin add by jianghao at 2019/05/13 end
-
-//Huaqin add by tangqingyong at 2017/02/02 start
 #include <linux/switch.h>
-//Huaqin add by tangqingyong at 2017/02/02 end
 
 #define FG_GEN3_DEV_NAME	"qcom,fg-gen3"
 
@@ -494,12 +484,10 @@ module_param_named(
 static int fg_restart;
 static bool fg_sram_dump;
 
-//Huaqin add by tangqingyong at 2017/02/02 start
 struct battery_name {
 	struct switch_dev battery_switch_dev;
 	char battery_name_type[100];
 } battery_name;
-//Huaqin add by tangqingyong at 2017/02/02 end
 
 /* All getters HERE */
 
@@ -1035,7 +1023,7 @@ static int fg_batt_missing_config(struct fg_chip *chip, bool enable)
 			BATT_INFO_BATT_MISS_CFG(chip), rc);
 	return rc;
 }
-//Huaqin add by tangqingyong at 2017/02/02 start
+
 ssize_t battery_print_name(struct switch_dev *sdev,char *buf)
 {
 	return sprintf(buf,"%s\n",battery_name.battery_name_type);
@@ -1053,8 +1041,6 @@ static int battery_switch_register(void)
 		battery_name.battery_switch_dev.state);
 	return 0;
 }
-//Huaqin add by tangqingyong at 2017/02/02 end
-
 
 static int fg_get_batt_id(struct fg_chip *chip)
 {
@@ -1120,11 +1106,9 @@ static int fg_get_batt_profile(struct fg_chip *chip)
 		pr_err("battery type unavailable, rc:%d\n", rc);
 		return rc;
 	}
-	//Huaqin add by tangqingyong at 2017/02/02 start
+
 	strcpy(battery_name.battery_name_type,chip->bp.batt_type_str);
 	battery_switch_register();
-	//Huaqin add by tangqingyong at 2017/02/02 end
-
 
 	rc = of_property_read_u32(profile_node, "qcom,max-voltage-uv",
 			&chip->bp.float_volt_uv);
@@ -6044,7 +6028,6 @@ static void fg_gen3_shutdown(struct platform_device *pdev)
 {
 	struct fg_chip *chip = dev_get_drvdata(&pdev->dev);
 	int rc, bsoc;
-/* Huaqin modify for ZQL1650 when shutdown diasble BAT_ID by fangaijun at 2018/03/7 start */
 	u8 status;
 	rc = fg_read(chip, BATT_INFO_BATT_MISS_CFG(chip), &status, 1);
 	printk("fg_gen3_shutdown status0=%d\n",status);
@@ -6055,7 +6038,7 @@ static void fg_gen3_shutdown(struct platform_device *pdev)
 			BATT_INFO_BATT_MISS_CFG(chip), rc);
 	rc = fg_read(chip, BATT_INFO_BATT_MISS_CFG(chip), &status, 1);
 	printk("fg_gen3_shutdown status1=%d\n",status);
-/* Huaqin modify for ZQL1650 when shutdown diasble BAT_ID by fangaijun at 2018/03/7 end */
+
 	if (chip->charge_full) {
 		rc = fg_get_sram_prop(chip, FG_SRAM_BATT_SOC, &bsoc);
 		if (rc < 0) {

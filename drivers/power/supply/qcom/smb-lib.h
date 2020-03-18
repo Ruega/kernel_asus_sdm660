@@ -310,19 +310,23 @@ struct smb_charger {
 	struct work_struct	legacy_detection_work;
 	struct delayed_work	uusb_otg_work;
 	struct delayed_work	bb_removal_work;
-/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
+
+/* Adapter ID start */
 	struct delayed_work	asus_chg_flow_work;
 	struct delayed_work	asus_adapter_adc_work;
-/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 end */
-/* Huaqin add for ZQL1650-68 Realize jeita function by fangaijun at 2018/02/03 start */
+/* Adapter ID end */
+
+/* Realize jeita start */
 	struct delayed_work	asus_min_monitor_work;
-/* Huaqin add for ZQL1650-68 Realize jeita function by fangaijun at 2018/02/03 end */
-/* Huaqin add for ZQL1650-68 systme suspend 1 min run sw jeita by fangaijun at 2018/02/06 start */
+/* Realize jeita end */
+
+/* sw jeita per min in suspend start */
 	struct delayed_work asus_batt_RTC_work;
-/* Huaqin add for ZQL1650-68 systme suspend 1 min run sw jeita by fangaijun at 2018/02/06 end */
-//Huaqin added by tangqingyong at 20180206 for USB alert start
+/* sw jeita per min in suspend end */
+
+/* USB alert start */
 	struct qpnp_vadc_chip			*gpio12_vadc_dev;
-//Huaqin added by tangqingyong at 20180206 for USB alert end
+/* USB alert end */
 
 	/* cached status */
 	int			voltage_min_uv;
@@ -381,14 +385,14 @@ struct smb_charger {
 	int			usb_icl_delta_ua;
 	int			pulse_cnt;
 };
-/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 start */
+/* Adapter ID start */
 //ASUS BSP : Add gpio control struct +++
 struct gpio_control {
 	u32 ADC_SW_EN;
 	u32 ADCPWREN_PMI_GP1;
 };
 //ASUS BSP : Add gpio control struct ---
-/* Huaqin modify for ZQL1650-70 Identify Adapter ID by fangaijun at 2018/02/8 end */
+/* Adapter ID end */
 int smblib_read(struct smb_charger *chg, u16 addr, u8 *val);
 int smblib_masked_write(struct smb_charger *chg, u16 addr, u8 mask, u8 val);
 int smblib_write(struct smb_charger *chg, u16 addr, u8 val);
@@ -460,10 +464,8 @@ int smblib_get_prop_input_current_limited(struct smb_charger *chg,
 				union power_supply_propval *val);
 int smblib_set_prop_input_suspend(struct smb_charger *chg,
 				const union power_supply_propval *val);
-/* Huaqin add for ZQL1650-189 by diganyun at 2018/02/01 start */
 int smblib_set_prop_charging_enabled(struct smb_charger *chg,
 				const union power_supply_propval *val);
-/* Huaqin add for ZQL1650-189 by diganyun at 2018/02/01 end */
 int smblib_set_prop_batt_capacity(struct smb_charger *chg,
 				const union power_supply_propval *val);
 int smblib_set_prop_system_temp_level(struct smb_charger *chg,
