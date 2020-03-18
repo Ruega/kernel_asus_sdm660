@@ -4257,26 +4257,7 @@ void asus_insertion_initial_settings(struct smb_charger *chg)
 	rc = smblib_masked_write(chg, VSYS_MIN_SEL_CFG_REG,
 			VSYS_MIN_SEL_MASK, 0x02);
 	if (rc < 0)
-		dev_err(chg->dev,
-			"Couldn't set default VSYS_MIN_SEL_CFG_REG rc=%d\n",
-			rc);
-
-	/* reg=1365, bit4=1
-	 * Use SW to control Input Current Limit after APSD is completed
-	 */
-	rc = smblib_masked_write(chg, USBIN_LOAD_CFG_REG,
-					ICL_OVERRIDE_AFTER_APSD_BIT,
-					ICL_OVERRIDE_AFTER_APSD_BIT);
-	if (rc < 0)
-		dev_err(chg->dev,
-			"Couldn't set default USBIN_LOAD_CFG_REG rc=%d\n", rc);
-
-	/* reg=1370 usb in current */
-	rc = smblib_read(chg, USBIN_CURRENT_LIMIT_CFG_REG, &USBIN_cc);
-	if (rc < 0)
-		pr_err("%s: Couldn't read fast_CURRENT_LIMIT_CFG_REG\n",
-			__func__);
-
+		printk("%s: Couldn't read fast_CURRENT_LIMIT_CFG_REG\n", __func__);
 	rc = smblib_masked_write(chg, USBIN_CURRENT_LIMIT_CFG_REG,
 					USBIN_CURRENT_LIMIT_MASK, 0x14);
 	if (rc < 0)
