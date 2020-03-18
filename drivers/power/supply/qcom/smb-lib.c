@@ -4108,7 +4108,6 @@ void asus_insertion_initial_settings(struct smb_charger *chg)
 	rc = smblib_read(chg, USBIN_CURRENT_LIMIT_CFG_REG, &USBIN_cc);   //reg=1370    usb in current
 	if (rc < 0)
 		printk("%s: Couldn't read fast_CURRENT_LIMIT_CFG_REG\n", __func__);
-	printk("asus_insertion_initial_setting USBIN_cc1=0x%x\n",USBIN_cc);
 	rc = smblib_masked_write(chg, USBIN_CURRENT_LIMIT_CFG_REG,
 			USBIN_CURRENT_LIMIT_MASK, 0x14);
 	if (rc < 0)

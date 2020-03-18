@@ -1842,7 +1842,6 @@ static int fg_charge_full_update(struct fg_chip *chip)
 	recharge_soc = chip->dt.recharge_soc_thr;
 	recharge_soc = DIV_ROUND_CLOSEST(recharge_soc * FULL_SOC_RAW,
 				FULL_CAPACITY);
-	printk("enter fg_charge_full_update recharge_soc=%d\n",recharge_soc);
 	rc = fg_get_sram_prop(chip, FG_SRAM_BATT_SOC, &bsoc);
 	if (rc < 0) {
 		pr_err("Error in getting BATT_SOC, rc=%d\n", rc);
@@ -1856,13 +1855,11 @@ static int fg_charge_full_update(struct fg_chip *chip)
 		pr_err("Error in getting msoc_raw, rc=%d\n", rc);
 		goto out;
 	}
-	printk("enter fg_charge_full_update  msoc_raw=%d\n",msoc_raw);
 	msoc = DIV_ROUND_CLOSEST(msoc_raw * FULL_CAPACITY, FULL_SOC_RAW);
 
 	fg_dbg(chip, FG_STATUS, "msoc: %d bsoc: %x health: %d status: %d full: %d\n",
 		msoc, bsoc, chip->health, chip->charge_status,
 		chip->charge_full);
-	printk("enter fg_charge_full_update msoc: %d bsoc: %x\n",msoc, bsoc);
 	if (chip->charge_done && !chip->charge_full) {
 		if (msoc >= 99 && chip->health == POWER_SUPPLY_HEALTH_GOOD) {
 			fg_dbg(chip, FG_STATUS, "Setting charge_full to true\n");
@@ -1928,12 +1925,8 @@ static int fg_charge_full_update(struct fg_chip *chip)
 			goto out;
 
 		chip->charge_full = false;
-/* Huaqin modify for ZQL1650-750 optimize discharge capacity jump 1% by fangaijun at 2018/03/29 start*/
-		printk("enter fg_charge_full_update2\n");
-/* Huaqin modify for ZQL1650-750 optimize discharge capacity jump 1% by fangaijun at 2018/03/29 end*/
 		fg_dbg(chip, FG_STATUS, "msoc_raw = %d bsoc: %d recharge_soc: %d delta_soc: %d\n",
 			msoc_raw, bsoc >> 8, recharge_soc, chip->delta_soc);
-		printk("enter fg_charge_full_update msoc_raw = %d bsoc: %d recharge_soc: %d\n",msoc_raw, bsoc >> 8, recharge_soc);
 	}
 
 out:
@@ -2783,7 +2776,6 @@ static void status_change_work(struct work_struct *work)
 	}
 
 	chip->charge_done = prop.intval;
-	printk("status_change_work chip->charge_done=%d\n",chip->charge_done);
 	fg_cycle_counter_update(chip);
 	fg_cap_learning_update(chip);
 
