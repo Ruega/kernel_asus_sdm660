@@ -2398,9 +2398,11 @@ static void tfa98xx_dsp_init(struct tfa98xx *tfa98xx)
 
 			/* Subsystem ready, tfa init complete */
 			tfa98xx->dsp_init = TFA98XX_DSP_INIT_DONE;
+#ifdef TFA_DEBUG
 			dev_dbg(&tfa98xx->i2c->dev,
-						"tfa_dev_start success (%d)\n",
-						tfa98xx->init_count);
+				"tfa_dev_start success (%d)\n",
+				tfa98xx->init_count);
+#endif
 			/* cancel other pending init works */
 			cancel_delayed_work(&tfa98xx->init_work);
 			tfa98xx->init_count = 0;
@@ -2655,10 +2657,11 @@ static int tfa98xx_hw_params(struct snd_pcm_substream *substream,
 
 	/* Supported */
 	rate = params_rate(params);
+#ifdef TFA_DEBUG
 	pr_debug("Requested rate: %d, sample size: %d, physical size: %d\n",
-			rate, snd_pcm_format_width(params_format(params)),
-			snd_pcm_format_physical_width(params_format(params)));
-
+		rate, snd_pcm_format_width(params_format(params)),
+		snd_pcm_format_physical_width(params_format(params)));
+#endif
 	if (no_start != 0)
 		return 0;
 
@@ -2668,7 +2671,9 @@ static int tfa98xx_hw_params(struct snd_pcm_substream *substream,
 		pr_err("tfa98xx: invalid sample rate %d.\n", rate);
 		return -EINVAL;
 	}
+#ifdef TFA_DEBUG
 	pr_debug("mixer profile:container profile = [%d:%d]\n", tfa98xx_mixer_profile, prof_idx);
+#endif
 
 
 	/* update 'real' profile (container profile) */
@@ -2754,9 +2759,11 @@ static int tfa98xx_mute(struct snd_soc_dai *dai, int mute, int stream)
 {
 	struct snd_soc_codec *codec = dai->codec;
 	struct tfa98xx *tfa98xx = snd_soc_codec_get_drvdata(codec);
+#endif
 
+#ifdef TFA_DEBUG
 	dev_dbg(&tfa98xx->i2c->dev, "%s: state: %d\n", __func__, mute);
-
+#endif
 	if (no_start) {
 		pr_debug("no_start parameter set no tfa_dev_start or tfa_dev_stop, returning\n");
 		return 0;
@@ -2806,14 +2813,14 @@ static int tfa98xx_mute(struct snd_soc_dai *dai, int mute, int stream)
 		else
 			tfa98xx->cstream = 1;
 
-		switch (tfa98xx_controls)
-
-			/* Start DSP */
-			if (tfa98xx->dsp_init != TFA98XX_DSP_INIT_PENDING)
-				queue_delayed_work(tfa98xx->tfa98xx_wq,
-						&tfa98xx->init_work, 0);
-#endif
-/* Huaqin add for TT:1212051 by xudayi at 2018/08/02 end */
+		/* Start DSP */
+#if 1
+		if (tfa98xx->dsp_init != TFA98XX_DSP_INIT_PENDING)
+			queue_delayed_work(tfa98xx->tfa98xx_wq,
+				&tfa98xx->init_work, 0);
+#else
+		tfa98xx_dsp_init(tfa98xx);
+#endif//
 	}
 
 	return 0;

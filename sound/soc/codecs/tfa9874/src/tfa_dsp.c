@@ -2533,8 +2533,9 @@ enum Tfa98xx_Error tfaRunSpeakerBoost(struct tfa_device *tfa, int force, int pro
 	/* Returns 1 when device is "cold" and 0 when device is warm */
 	value = tfa_is_cold(tfa);
 
+#ifdef TFA_DEBUG
 	pr_debug("Startup of device [%s] is a %sstart\n", tfaContDeviceName(tfa->cnt, tfa->dev_idx), value ? "cold" : "warm");
-
+#endif
 	/* cold start and not tap profile */
 	if (value) {
 		/* Run startup and write all files */
@@ -2941,10 +2942,11 @@ enum tfa_error tfa_dev_start(struct tfa_device *tfa, int next_profile, int vstep
 		active_profile = -1;
 
 	/* TfaRun_SpeakerBoost implies un-mute */
+#ifdef TFA_DEBUG
 	pr_debug("Active_profile:%s, next_profile:%s\n",
-			tfaContProfileName(tfa->cnt, tfa->dev_idx, active_profile),
-			tfaContProfileName(tfa->cnt, tfa->dev_idx, next_profile));
-
+		tfaContProfileName(tfa->cnt, tfa->dev_idx, active_profile),
+		tfaContProfileName(tfa->cnt, tfa->dev_idx, next_profile));
+#endif
 	err = show_current_state(tfa);
 
 	if ( tfa->tfa_family == 1 ) { /* TODO move this to ini file */
