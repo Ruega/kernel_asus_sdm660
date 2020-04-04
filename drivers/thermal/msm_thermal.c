@@ -150,7 +150,7 @@ module_param(temp_threshold, int, 0755);
 
 static struct msm_thermal_data msm_thermal_info;
 static struct delayed_work check_temp_work, retry_hotplug_work;
-static bool core_control_enabled;
+static bool core_control_enabled = false;
 static uint32_t cpus_offlined;
 static cpumask_var_t cpus_previously_online;
 static DEFINE_MUTEX(core_control_mutex);
@@ -163,8 +163,8 @@ static struct completion hotplug_notify_complete;
 static struct completion freq_mitigation_complete;
 static struct completion thermal_monitor_complete;
 
-static int enabled;
-static int polling_enabled;
+static int enabled = 0;
+static int polling_enabled = 0;
 static int rails_cnt;
 static int sensor_cnt;
 static int psm_rails_cnt;
@@ -184,8 +184,8 @@ static bool sensor_info_probed;
 static bool psm_enabled;
 static bool psm_nodes_called;
 static bool psm_probed;
-static bool freq_mitigation_enabled;
-static bool boot_freq_mitig_enabled;
+static bool freq_mitigation_enabled = false;
+static bool boot_freq_mitig_enabled = false;
 static bool ocr_enabled;
 static bool ocr_nodes_called;
 static bool ocr_probed;
@@ -5035,8 +5035,8 @@ static int __ref set_enabled(const char *val, const struct kernel_param *kp)
 {
 	int ret = 0;
 
-/*	if (*val == '0' || *val == 'n' || *val == 'N') {
-		enabled = 0;
+/*	ret = param_set_bool(val, kp);
+	if (!enabled)
 		interrupt_mode_init();
 	pr_info("%s: msm_thermal disabled!\n", KBUILD_MODNAME);
 	} else {
@@ -5049,7 +5049,7 @@ static int __ref set_enabled(const char *val, const struct kernel_param *kp)
 			pr_info("%s: already running...\n", KBUILD_MODNAME);
 	}
 
-	pr_info("enabled = %d\n", enabled);
+	pr_info("enabled = %d\n", enabled); */
 
 	return ret;
 }
@@ -5086,7 +5086,7 @@ static ssize_t __ref store_cc_enabled(struct kobject *kobj,
 		goto done_store_cc;
 	}
 
-	if (core_control_enabled == !!val)
+//	if (core_control_enabled == !!val)
 		goto done_store_cc;
 
 	core_control_enabled = !!val;
@@ -5556,7 +5556,6 @@ int msm_thermal_init(struct msm_thermal_data *pdata)
 	}
 
 	enabled = 0;
-	pr_info("%s: polling enabled!\n", KBUILD_MODNAME);
 	polling_enabled = 0;
 	ret = cpufreq_register_notifier(&msm_thermal_cpufreq_notifier,
 			CPUFREQ_POLICY_NOTIFIER);
@@ -6880,8 +6879,8 @@ static int probe_cc(struct device_node *node, struct msm_thermal_data *data,
 	int ret = 0;
 
 	if (num_possible_cpus() > 1) {
-		core_control_enabled = 1;
-		hotplug_enabled = 1;
+		core_control_enabled = false;
+		hotplug_enabled = false;
 	}
 
 	key = "qcom,online-hotplug-core";
@@ -7172,7 +7171,7 @@ static int probe_freq_mitigation(struct device_node *node,
 	ret = of_property_read_u32(node, key, &data->bootup_freq_step);
 	if (ret)
 		goto PROBE_FREQ_EXIT;
-	boot_freq_mitig_enabled = true;
+	boot_freq_mitig_enabled = false;
 
 	key = "qcom,freq-mitigation-temp";
 	ret = of_property_read_u32(node, key, &data->freq_mitig_temp_degc);
@@ -7190,7 +7189,7 @@ static int probe_freq_mitigation(struct device_node *node,
 	if (ret)
 		goto PROBE_FREQ_EXIT;
 
-	freq_mitigation_enabled = 1;
+	freq_mitigation_enabled = false;
 	snprintf(mit_config[MSM_LIST_MAX_NR + CPUFREQ_CONFIG].config_name,
 		MAX_DEBUGFS_CONFIG_LEN, "cpufreq");
 	mit_config[MSM_LIST_MAX_NR + CPUFREQ_CONFIG].disable_config
@@ -7424,10 +7423,10 @@ static void enable_config(int config_id)
 		cxip_lm_enabled = 1;
 		break;
 	case MSM_LIST_MAX_NR + HOTPLUG_CONFIG:
-		hotplug_enabled = 1;
+		hotplug_enabled = false;
 		break;
 	case MSM_LIST_MAX_NR + CPUFREQ_CONFIG:
-		freq_mitigation_enabled = 1;
+		freq_mitigation_enabled = false;
 		break;
 	default:
 		pr_err("Bad config:%d\n", config_id);
