@@ -2595,10 +2595,6 @@ static bool shrink_zone(struct zone *zone, struct scan_control *sc,
 		 * making the cost model (i.e. scan:free) different from that
 		 * of LRU.
 		 */
-		vmpressure(sc->gfp_mask, sc->target_mem_cgroup,
-			   sc->nr_scanned - nr_scanned,
-			   sc->nr_reclaimed - nr_reclaimed);
-
 		if (reclaim_state) {
 			sc->nr_reclaimed += reclaim_state->reclaimed_slab;
 			reclaim_state->reclaimed_slab = 0;
