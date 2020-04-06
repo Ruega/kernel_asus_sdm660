@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -13,6 +13,7 @@
 #include "config.h"
 
 #include "tfa_service.h"  //TODO cleanup for enum Tfa98xx_Status_ID
+
 /**
  * Return a text version of the firmware status ID code
  * @param status the given status ID code

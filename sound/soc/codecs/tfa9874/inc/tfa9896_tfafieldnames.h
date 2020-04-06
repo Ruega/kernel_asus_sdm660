@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -9,6 +9,7 @@
 
 #ifndef _TFA9896_TFAFIELDNAMES_H
 #define _TFA9896_TFAFIELDNAMES_H
+
 
 #define TFA9896_I2CVERSION    16
 

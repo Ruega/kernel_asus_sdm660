@@ -1,14 +1,12 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
  */
- 
 #define TFA9888_I2CVERSION 18
-
 typedef enum nxpTfa2BfEnumList {
     TFA2_BF_PWDN  = 0x0000,    /*!< Powerdown selection                                */
     TFA2_BF_I2CR  = 0x0010,    /*!< I2C Reset - Auto clear                             */

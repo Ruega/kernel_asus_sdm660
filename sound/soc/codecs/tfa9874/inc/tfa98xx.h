@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -33,10 +33,6 @@
 #define TFA98XX_FLAG_LP_MODES	        (1 << 7)
 #define TFA98XX_FLAG_TDM_DEVICE         (1 << 8)
 
-#ifdef TFA9874_NONDSP_STEREO
-#define TFA98XX_FLAG_CHIP_SELECTED      (1 << 16)
-#endif
-
 #define TFA98XX_NUM_RATES		9
 
 /* DSP init status */
@@ -69,13 +65,15 @@ struct tfa98xx_baseprofile {
 	int sr_rate_sup[TFA98XX_NUM_RATES]; /* sample rates supported by this profile */
 	struct list_head list;              /* list of all profiles */
 };
-
+enum tfa_reset_polarity{
+	LOW=0,
+	HIGH=1
+};
 struct tfa98xx {
 	struct regmap *regmap;
 	struct i2c_client *i2c;
 	struct regulator *vdd;
 	struct snd_soc_codec *codec;
-	struct workqueue_struct *tfa98xx_wq;
 	struct delayed_work init_work;
 	struct delayed_work monitor_work;
 	struct delayed_work interrupt_work;
@@ -107,16 +105,12 @@ struct tfa98xx {
 	int reset_gpio;
 	int power_gpio;
 	int irq_gpio;
-
+	enum tfa_reset_polarity reset_polarity; 
 	struct list_head list;
 	struct tfa_device *tfa;
 	int vstep;
 	int profile;
 	int prof_vsteps[TFACONT_MAXPROFS]; /* store vstep per profile (single device) */
-
-#ifdef TFA9874_NONDSP_STEREO
-        unsigned int nonDSP_stereo;
-#endif
 
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *dbg_dir;

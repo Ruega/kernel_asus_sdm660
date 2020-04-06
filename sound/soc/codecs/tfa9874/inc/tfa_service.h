@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -20,7 +20,7 @@ extern "C" {
 #include "NXP_I2C.h"
 #endif
 
-#define TFA98XX_API_REV_STR "v6.5.0"
+#define TFA98XX_API_REV_STR "v6.6.2"
 
 #include "tfa_device.h"
 
@@ -752,7 +752,7 @@ enum Tfa98xx_Error mem_write(struct tfa_device *tfa, unsigned short address, int
 enum Tfa98xx_Error mem_read(struct tfa_device *tfa, unsigned int start_offset, int num_words, int *pValues);
 
 enum Tfa98xx_Error dsp_partial_coefficients(struct tfa_device *tfa, uint8_t *prev, uint8_t *next);
-
+int is_94_N2_device(struct tfa_device *tfa);
 /**
  * write/read raw msg functions:
  * the buffer is provided in little endian format, each word occupying 3 bytes, length is in bytes.
@@ -997,6 +997,7 @@ enum Tfa98xx_Error tfa_status(struct tfa_device *tfa);
  */
 int tfa_dev_get_mtpb(struct tfa_device *tfa);
 
+enum Tfa98xx_Error tfaGetFwApiVersion(struct tfa_device *tfa, unsigned char *pFirmwareVersion);
 #ifdef __cplusplus
 }
 #endif

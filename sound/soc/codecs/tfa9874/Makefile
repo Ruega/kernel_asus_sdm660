@@ -34,7 +34,9 @@ EXTRA_CFLAGS += -DTFA_DEBUG -DDEBUG
 snd-soc-tfa9874-objs += src/tfa_debug.o
 endif
 
+ifeq ($(CONFIG_MACH_ASUS_X00T),y)
 EXTRA_CFLAGS += -DTFA9874_NONDSP_STEREO
+endif
 
 else
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -11,6 +11,7 @@
 #define TFA_INC_TFA9891_TFAFIELDNAMES_H_
 
 #define TFA9891_I2CVERSION    13
+
 
 #define TFA9891_NAMETABLE static tfaBfName_t Tfa9891DatasheetNames[]= {\
    { 0x0, "VDDS"},    /* POR                                               , */\
@@ -506,5 +507,6 @@
    { 0x8f0f, "production_data6"},    /* (key1 protected)                                  , */\
    { 0xffff,"Unknown bitfield enum" }    /* not found */\
 };
+
 
 #endif /* TFA_INC_TFA9891_TFAFIELDNAMES_H_ */

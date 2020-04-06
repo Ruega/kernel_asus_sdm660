@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -27,7 +27,9 @@ typedef struct TfaIrqName {
 #include "tfa9912_tfafieldnames.h"
 #include "tfa9896_tfafieldnames.h"
 #include "tfa9874_tfafieldnames.h"
+#include "tfa9878_tfafieldnames.h"
 #include "tfa9894_tfafieldnames.h"
+#include "tfa9894_tfafieldnames_N2.h"
 
 /* missing 'common' defs break the build but unused in TFA1 context */
 #define TFA1_BF_AMPINSEL -1
