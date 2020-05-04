@@ -638,14 +638,15 @@ static ssize_t tfa98xx_dbgfs_dsp_state_set(struct file *file,
 		mutex_lock(&tfa98xx->dsp_lock);
 		ret = tfa_dev_stop(tfa98xx->tfa);
 		mutex_unlock(&tfa98xx->dsp_lock);
-
-		pr_debug("[0x%x] tfa_dev_stop complete: %d\n",  tfa98xx->i2c->addr, ret);
-	} else if (!strncmp(buf, mon_start_cmd, sizeof(mon_start_cmd) - 1)) {
-		pr_info("[0x%x] Manual start of monitor thread...\n",  tfa98xx->i2c->addr);
+		pr_debug("[0x%x] tfa_dev_stop complete: %d\n", tfa98xx->i2c->addr, ret);
+	}
+	else if (!strncmp(buf, mon_start_cmd, sizeof(mon_start_cmd) - 1)) {
+		pr_debug("[0x%x] Manual start of monitor thread...\n", tfa98xx->i2c->addr);
 		queue_delayed_work(system_power_efficient_wq,
-				   &tfa98xx->monitor_work, HZ);
-	} else if (!strncmp(buf, mon_stop_cmd, sizeof(mon_stop_cmd) - 1)) {
-		pr_info("[0x%x] Manual stop of monitor thread...\n",  tfa98xx->i2c->addr);
+			&tfa98xx->monitor_work, HZ);
+	}
+	else if (!strncmp(buf, mon_stop_cmd, sizeof(mon_stop_cmd) - 1)) {
+		pr_debug("[0x%x] Manual stop of monitor thread...\n", tfa98xx->i2c->addr);
 		cancel_delayed_work_sync(&tfa98xx->monitor_work);
 	}
 	else {
@@ -1950,9 +1951,8 @@ static void tfa98xx_tapdet_check_update(struct tfa98xx *tfa98xx)
 		/* interrupt not available, setup polling mode */
 		tfa98xx->tapdet_poll = true;
 		if (enable)
-
 			queue_delayed_work(system_power_efficient_wq,
-					   &tfa98xx->tapdet_work, HZ/10);
+				&tfa98xx->tapdet_work, HZ / 10);
 		else
 			cancel_delayed_work_sync(&tfa98xx->tapdet_work);
 		dev_dbg(tfa98xx->codec->dev,
@@ -2184,8 +2184,7 @@ static void tfa98xx_tapdet_work(struct work_struct *work)
 	if (tfa_irq_get(tfa98xx->tfa, tfa9912_irq_sttapdet))
 		tfa98xx_tapdet(tfa98xx);
 
-	queue_delayed_work(system_power_efficient_wq,
-			   &tfa98xx->tapdet_work, HZ/10);
+	queue_delayed_work(system_power_efficient_wq, &tfa98xx->tapdet_work, HZ / 10);
 }
 
 static void tfa98xx_monitor(struct work_struct *work)
@@ -2210,9 +2209,7 @@ static void tfa98xx_monitor(struct work_struct *work)
 	}
 
 	/* reschedule */
-
-	queue_delayed_work(system_power_efficient_wq,
-			   &tfa98xx->monitor_work, 5*HZ);
+	queue_delayed_work(system_power_efficient_wq, &tfa98xx->monitor_work, 5 * HZ);
 }
 
 static void tfa98xx_dsp_init(struct tfa98xx *tfa98xx)

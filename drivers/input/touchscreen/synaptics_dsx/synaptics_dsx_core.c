@@ -3484,7 +3484,7 @@ exit:
 	mutex_unlock(&exp_data.mutex);
 
 	if (exp_data.queue_work) {
-		queue_delayed_work(exp_data.workqueue,
+		queue_delayed_work(system_power_efficient_wq,
 				&exp_data.work,
 				msecs_to_jiffies(EXP_FN_WORK_DELAY_MS));
 	}
@@ -3854,6 +3854,28 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 
 	synaptics_secure_touch_init(rmi4_data);
 	synaptics_secure_touch_stop(rmi4_data, 1);
+
+	rc = create_synaptics_gesture_control();
+
+	rmi4_data->rb_workqueue =
+			create_singlethread_workqueue("dsx_rebuild_workqueue");
+	INIT_DELAYED_WORK(&rmi4_data->rb_work, synaptics_rmi4_rebuild_work);
+
+	exp_data.workqueue = create_singlethread_workqueue("dsx_exp_workqueue");
+	INIT_DELAYED_WORK(&exp_data.work, synaptics_rmi4_exp_fn_work);
+	exp_data.rmi4_data = rmi4_data;
+	exp_data.queue_work = true;
+	queue_delayed_work(system_power_efficient_wq,
+			&exp_data.work,
+			0);
+
+#ifdef FB_READY_RESET
+	rmi4_data->reset_workqueue =
+			create_singlethread_workqueue("dsx_reset_workqueue");
+	INIT_WORK(&rmi4_data->reset_work, synaptics_rmi4_reset_work);
+	queue_work(rmi4_data->reset_workqueue, &rmi4_data->reset_work);
+#endif
+>>>>>>> 018676053b4dc... treewide: queue delayed works on system_power_efficient_wq
 
 	return retval;
 
