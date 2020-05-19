@@ -16943,7 +16943,9 @@ static const struct soc_enum slim0_rx_vi_fb_rch_mux_enum =
 
 /* Huaqin add for active nxp pa cal function by xudayi at 2018/03/03 start */
 static const struct soc_enum mi2s_rx_vi_fb_mux_enum =
-       	//CAF: SOC_VALUE_ENUM_DOUBLE(0, MSM_BACKEND_DAI_TERTIARY_MI2S_RX, 0, 0,
+#ifdef CONFIG_MACH_ASUS_X00T
+	SOC_VALUE_ENUM_DOUBLE(0, MSM_BACKEND_DAI_TERTIARY_MI2S_RX, 0, 0,
+#else
 	SOC_VALUE_ENUM_DOUBLE(SND_SOC_NOPM, MSM_BACKEND_DAI_PRI_MI2S_RX, 0, 0,
 	ARRAY_SIZE(mi2s_rx_vi_fb_tx_mux_text),
 	mi2s_rx_vi_fb_tx_mux_text, mi2s_rx_vi_fb_tx_value);
