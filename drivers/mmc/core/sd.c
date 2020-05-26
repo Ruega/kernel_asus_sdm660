@@ -61,6 +61,10 @@ static const unsigned int sd_au_size[] = {
 	SZ_16M / 512,	(SZ_16M + SZ_8M) / 512,	SZ_32M / 512,	SZ_64M / 512,
 };
 
+static const unsigned int sd_speed_class[] = {
+	0,	2,	4,	6,	10,
+};
+
 #define UNSTUFF_BITS(resp,start,size)					\
 	({								\
 		const int __size = size;				\
@@ -81,8 +85,6 @@ static const unsigned int sd_au_size[] = {
 void mmc_decode_cid(struct mmc_card *card)
 {
 	u32 *resp = card->raw_cid;
-
-	memset(&card->cid, 0, sizeof(struct mmc_cid));
 
 	/*
 	 * SD doesn't currently have a version field so we will
@@ -285,6 +287,12 @@ static int mmc_read_ssr(struct mmc_card *card)
 				mmc_hostname(card->host));
 		}
 	}
+	card->ssr.speed_class = sd_speed_class[UNSTUFF_BITS(ssr, 440 - 384, 8)];
+	card->ssr.uhs_speed_grade = UNSTUFF_BITS(ssr, 396 - 384, 4);
+	pr_info("%s: card speed is C%d. uhs grade is %d\n",
+		mmc_hostname(card->host),
+		card->ssr.speed_class,
+		card->ssr.uhs_speed_grade);
 out:
 	kfree(ssr);
 	return err;
@@ -310,12 +318,8 @@ static int mmc_read_switch(struct mmc_card *card)
 	err = -EIO;
 
 	status = kmalloc(64, GFP_KERNEL);
-	if (!status) {
-		pr_err("%s: could not allocate a buffer for "
-			"switch capabilities.\n",
-			mmc_hostname(card->host));
+	if (!status)
 		return -ENOMEM;
-	}
 
 	/*
 	 * Find out the card's support bits with a mode 0 operation.
@@ -375,11 +379,8 @@ int mmc_sd_switch_hs(struct mmc_card *card)
 		return 0;
 
 	status = kmalloc(64, GFP_KERNEL);
-	if (!status) {
-		pr_err("%s: could not allocate a buffer for "
-			"switch capabilities.\n", mmc_hostname(card->host));
+	if (!status)
 		return -ENOMEM;
-	}
 
 	err = mmc_sd_switch(card, 1, 0, 1, status);
 	if (err)
@@ -647,10 +648,8 @@ static int mmc_sd_change_bus_speed(struct mmc_host *host, unsigned long *freq)
 		 * frequency, it is host driver responsibility to
 		 * perform actual tuning only when required.
 		 */
-		mmc_host_clk_hold(card->host);
 		err = card->host->ops->execute_tuning(card->host,
 				MMC_SEND_TUNING_BLOCK);
-		mmc_host_clk_release(card->host);
 
 		if (err) {
 			pr_warn("%s: %s: tuning execution failed %d. Restoring to previous clock %lu\n",
@@ -680,11 +679,8 @@ static int mmc_sd_init_uhs_card(struct mmc_card *card)
 		return 0;
 
 	status = kmalloc(64, GFP_KERNEL);
-	if (!status) {
-		pr_err("%s: could not allocate a buffer for "
-			"switch capabilities.\n", mmc_hostname(card->host));
+	if (!status)
 		return -ENOMEM;
-	}
 
 	/* Set 4-bit bus width */
 	if ((card->host->caps & MMC_CAP_4_BIT_DATA) &&
@@ -761,6 +757,8 @@ MMC_DEV_ATTR(manfid, "0x%06x\n", card->cid.manfid);
 MMC_DEV_ATTR(name, "%s\n", card->cid.prod_name);
 MMC_DEV_ATTR(oemid, "0x%04x\n", card->cid.oemid);
 MMC_DEV_ATTR(serial, "0x%08x\n", card->cid.serial);
+MMC_DEV_ATTR(speed_class, "%u\n", card->ssr.speed_class);
+MMC_DEV_ATTR(uhs_speed_grade, "%u\n", card->ssr.uhs_speed_grade);
 
 
 static struct attribute *sd_std_attrs[] = {
@@ -776,6 +774,8 @@ static struct attribute *sd_std_attrs[] = {
 	&dev_attr_name.attr,
 	&dev_attr_oemid.attr,
 	&dev_attr_serial.attr,
+	&dev_attr_speed_class.attr,
+	&dev_attr_uhs_speed_grade.attr,
 	NULL,
 };
 ATTRIBUTE_GROUPS(sd_std);
@@ -844,8 +844,7 @@ try_again:
 	 */
 	if (!mmc_host_is_spi(host) && rocr &&
 	   ((*rocr & 0x41000000) == 0x41000000)) {
-		err = mmc_set_signal_voltage(host, MMC_SIGNAL_VOLTAGE_180,
-					pocr);
+		err = mmc_set_uhs_voltage(host, pocr);
 		if (err == -EAGAIN) {
 			retries--;
 			goto try_again;
@@ -855,11 +854,7 @@ try_again:
 		}
 	}
 
-	if (mmc_host_is_spi(host))
-		err = mmc_send_cid(host, cid);
-	else
-		err = mmc_all_send_cid(host, cid);
-
+	err = mmc_send_cid(host, cid);
 	return err;
 }
 
@@ -896,9 +891,7 @@ static int mmc_sd_get_ro(struct mmc_host *host)
 	if (!host->ops->get_ro)
 		return -1;
 
-	mmc_host_clk_hold(host);
 	ro = host->ops->get_ro(host);
-	mmc_host_clk_release(host);
 
 	return ro;
 }
@@ -1020,7 +1013,6 @@ static int mmc_sd_init_card(struct mmc_host *host, u32 ocr,
 	u32 cid[4];
 	u32 rocr = 0;
 
-	BUG_ON(!host);
 	WARN_ON(!host->claimed);
 
 	err = mmc_sd_get_cid(host, ocr, cid, &rocr);
@@ -1169,9 +1161,6 @@ static int mmc_sd_dereg_temp_control_clk_scaling(struct mmc_host *host)
  */
 static void mmc_sd_remove(struct mmc_host *host)
 {
-	BUG_ON(!host);
-	BUG_ON(!host->card);
-
 	mmc_exit_clk_scaling(host);
 	mmc_sd_dereg_temp_control_clk_scaling(host);
 	mmc_remove_card(host->card);
@@ -1201,9 +1190,6 @@ static void mmc_sd_detect(struct mmc_host *host)
 #ifdef CONFIG_MMC_PARANOID_SD_INIT
 	int retries = 5;
 #endif
-
-	BUG_ON(!host);
-	BUG_ON(!host->card);
 
 	/*
 	 * Try to acquire claim host. If failed to get the lock in 2 sec,
@@ -1266,9 +1252,6 @@ static int _mmc_sd_suspend(struct mmc_host *host)
 {
 	int err = 0;
 
-	BUG_ON(!host);
-	BUG_ON(!host->card);
-
 	err = mmc_suspend_clk_scaling(host);
 	if (err) {
 		pr_err("%s: %s: fail to suspend clock scaling (%d)\n",
@@ -1325,9 +1308,6 @@ static int _mmc_sd_resume(struct mmc_host *host)
 #ifdef CONFIG_MMC_PARANOID_SD_INIT
 	int retries;
 #endif
-
-	BUG_ON(!host);
-	BUG_ON(!host->card);
 
 	mmc_claim_host(host);
 
@@ -1469,7 +1449,6 @@ int mmc_attach_sd(struct mmc_host *host)
 	int retries;
 #endif
 
-	BUG_ON(!host);
 	WARN_ON(!host->claimed);
 
 	err = mmc_send_app_op_cond(host, 0, &ocr);

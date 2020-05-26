@@ -17,6 +17,7 @@
 #include <linux/notifier.h>
 
 #define MMC_CARD_CMDQ_BLK_SIZE 512
+#define MMC_CMDQ_WAIT_EVENT_TIMEOUT_MS 60000
 
 struct mmc_cid {
 	unsigned int		manfid;
@@ -159,6 +160,8 @@ struct sd_ssr {
 	unsigned int		au;			/* In sectors */
 	unsigned int		erase_timeout;		/* In milliseconds */
 	unsigned int		erase_offset;		/* In milliseconds */
+	unsigned int		speed_class;
+	unsigned int		uhs_speed_grade;
 };
 
 struct sd_switch_caps {
@@ -375,7 +378,6 @@ struct mmc_card {
 						/* for byte mode */
 #define MMC_QUIRK_NONSTD_SDIO	(1<<2)		/* non-standard SDIO card attached */
 						/* (missing CIA registers) */
-#define MMC_QUIRK_BROKEN_CLK_GATING (1<<3)	/* clock gating the sdio bus will make card fail */
 #define MMC_QUIRK_NONSTD_FUNC_IF (1<<4)		/* SDIO card has nonstd function interfaces */
 #define MMC_QUIRK_DISABLE_CD	(1<<5)		/* disconnect CD/DAT[3] resistor */
 #define MMC_QUIRK_INAND_CMD38	(1<<6)		/* iNAND devices have broken CMD38 */

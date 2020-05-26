@@ -27,13 +27,10 @@ void mmc_set_chip_select(struct mmc_host *host, int mode);
 void mmc_set_clock(struct mmc_host *host, unsigned int hz);
 int mmc_clk_update_freq(struct mmc_host *host,
 		unsigned long freq, enum mmc_load state);
-void mmc_gate_clock(struct mmc_host *host);
-void mmc_ungate_clock(struct mmc_host *host);
-void mmc_set_ungated(struct mmc_host *host);
 void mmc_set_bus_mode(struct mmc_host *host, unsigned int mode);
 void mmc_set_bus_width(struct mmc_host *host, unsigned int width);
 u32 mmc_select_voltage(struct mmc_host *host, u32 ocr);
-int mmc_set_signal_voltage(struct mmc_host *host, int signal_voltage, u32 ocr);
+int mmc_set_uhs_voltage(struct mmc_host *host, u32 ocr);
 int __mmc_set_signal_voltage(struct mmc_host *host, int signal_voltage);
 void mmc_set_timing(struct mmc_host *host, unsigned int timing);
 void mmc_set_driver_type(struct mmc_host *host, unsigned int drv_type);
@@ -43,6 +40,7 @@ void mmc_power_up(struct mmc_host *host, u32 ocr);
 void mmc_power_off(struct mmc_host *host);
 void mmc_power_cycle(struct mmc_host *host, u32 ocr);
 void mmc_set_initial_state(struct mmc_host *host);
+u32 mmc_vddrange_to_ocrmask(int vdd_min, int vdd_max);
 
 static inline void mmc_delay(unsigned int ms)
 {
@@ -87,6 +85,40 @@ extern unsigned long mmc_get_max_frequency(struct mmc_host *host);
 int mmc_execute_tuning(struct mmc_card *card);
 int mmc_hs200_to_hs400(struct mmc_card *card);
 int mmc_hs400_to_hs200(struct mmc_card *card);
+
+/**
+ *     mmc_pre_req - Prepare for a new request
+ *     @host: MMC host to prepare command
+ *     @mrq: MMC request to prepare for
+ *     @is_first_req: true if there is no previous started request
+ *                     that may run in parellel to this call, otherwise false
+ *
+ *     mmc_pre_req() is called in prior to mmc_start_req() to let
+ *     host prepare for the new request. Preparation of a request may be
+ *     performed while another request is running on the host.
+ */
+static inline void mmc_pre_req(struct mmc_host *host, struct mmc_request *mrq,
+                bool is_first_req)
+{
+       if (host->ops->pre_req)
+               host->ops->pre_req(host, mrq, is_first_req);
+}
+
+/**
+ *     mmc_post_req - Post process a completed request
+ *     @host: MMC host to post process command
+ *     @mrq: MMC request to post process for
+ *     @err: Error, if non zero, clean up any resources made in pre_req
+ *
+ *     Let the host post process a completed request. Post processing of
+ *     a request may be performed while another reuqest is running.
+ */
+static inline void mmc_post_req(struct mmc_host *host, struct mmc_request *mrq,
+                        int err)
+{
+       if (host->ops->post_req)
+               host->ops->post_req(host, mrq, err);
+}
 
 #endif
 

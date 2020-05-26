@@ -173,6 +173,8 @@
 
 #define CENTI_DEGREE_TO_DEGREE 10
 
+#define RCLK_TOGGLE 0x2
+
 struct sdhci_msm_offset {
 	u32 CORE_MCI_DATA_CNT;
 	u32 CORE_MCI_STATUS;
@@ -1107,8 +1109,8 @@ out:
 static void sdhci_msm_set_mmc_drv_type(struct sdhci_host *host, u32 opcode,
 		u8 drv_type)
 {
-	struct mmc_command cmd = {0};
-	struct mmc_request mrq = {NULL};
+	struct mmc_command cmd = {};
+	struct mmc_request mrq = {};
 	struct mmc_host *mmc = host->mmc;
 	u8 val = ((drv_type << 4) | 2);
 
@@ -1206,8 +1208,8 @@ retry:
 
 	phase = 0;
 	do {
-		struct mmc_command cmd = {0};
-		struct mmc_data data = {0};
+		struct mmc_command cmd = {};
+		struct mmc_data data = {};
 		struct mmc_request mrq = {
 			.cmd = &cmd,
 			.data = &data
@@ -3119,17 +3121,7 @@ static void sdhci_msm_set_clock(struct sdhci_host *host, unsigned int clock)
 
 	curr_pwrsave = !!(readl_relaxed(host->ioaddr +
 	msm_host_offset->CORE_VENDOR_SPEC) & CORE_CLK_PWRSAVE);
-	if ((clock > 400000) &&
-	    !curr_pwrsave && card && mmc_host_may_gate_card(card))
-		writel_relaxed(readl_relaxed(host->ioaddr +
-				msm_host_offset->CORE_VENDOR_SPEC)
-				| CORE_CLK_PWRSAVE, host->ioaddr +
-				msm_host_offset->CORE_VENDOR_SPEC);
-	/*
-	 * Disable pwrsave for a newly added card if doesn't allow clock
-	 * gating.
-	 */
-	else if (curr_pwrsave && card && !mmc_host_may_gate_card(card))
+	if (curr_pwrsave && card)
 		writel_relaxed(readl_relaxed(host->ioaddr +
 				msm_host_offset->CORE_VENDOR_SPEC)
 				& ~CORE_CLK_PWRSAVE, host->ioaddr +
@@ -3191,6 +3183,33 @@ static void sdhci_msm_set_clock(struct sdhci_host *host, unsigned int clock)
 					| CORE_HC_SELECT_IN_HS400
 					| CORE_HC_SELECT_IN_EN), host->ioaddr +
 					msm_host_offset->CORE_VENDOR_SPEC);
+		}
+		/*
+		 * After MCLK ugating, toggle the FIFO write clock to get
+		 * the FIFO pointers and flags to valid state.
+		 */
+		if (msm_host->tuning_done ||
+				(card && mmc_card_strobe(card) &&
+				msm_host->enhanced_strobe)) {
+			/*
+			 * set HC_REG_DLL_CONFIG_3[1] to select MCLK as
+			 * DLL input clock
+			 */
+			writel_relaxed(((readl_relaxed(host->ioaddr +
+				msm_host_offset->CORE_DDR_CONFIG))
+				| RCLK_TOGGLE), host->ioaddr +
+				msm_host_offset->CORE_DDR_CONFIG);
+			/* ensure above write as toggling same bit quickly */
+			wmb();
+			udelay(2);
+			/*
+			 * clear HC_REG_DLL_CONFIG_3[1] to select RCLK as
+			 * DLL input clock
+			 */
+			writel_relaxed(((readl_relaxed(host->ioaddr +
+				msm_host_offset->CORE_DDR_CONFIG))
+				& ~RCLK_TOGGLE), host->ioaddr +
+				msm_host_offset->CORE_DDR_CONFIG);
 		}
 		/* No need to check for DLL lock for HS400es mode */
 		if (!host->mmc->ios.old_rate && !msm_host->use_cdclp533 &&
@@ -3803,8 +3822,9 @@ void sdhci_msm_pm_qos_irq_unvote(struct sdhci_host *host, bool async)
 		return;
 
 	if (async) {
-		schedule_delayed_work(&msm_host->pm_qos_irq.unvote_work,
-				      msecs_to_jiffies(QOS_REMOVE_DELAY_MS));
+		queue_delayed_work(msm_host->pm_qos_wq,
+				&msm_host->pm_qos_irq.unvote_work,
+				msecs_to_jiffies(QOS_REMOVE_DELAY_MS));
 		return;
 	}
 
@@ -3881,6 +3901,33 @@ static inline void set_affine_irq(struct sdhci_msm_host *msm_host,
 				struct sdhci_host *host) { }
 #endif
 
+static bool sdhci_msm_pm_qos_wq_init(struct sdhci_msm_host *msm_host)
+{
+	char *wq = NULL;
+	bool ret = true;
+
+	wq = kasprintf(GFP_KERNEL, "sdhci_msm_pm_qos/%s",
+			dev_name(&msm_host->pdev->dev));
+	if (!wq)
+		return false;
+	/*
+	 * Create a work queue with flag WQ_MEM_RECLAIM set for
+	 * pm_qos_unvote work. Because mmc thread is created with
+	 * flag PF_MEMALLOC set, kernel will check for work queue
+	 * flag WQ_MEM_RECLAIM when flush the work queue. If work
+	 * queue flag WQ_MEM_RECLAIM is not set, kernel warning
+	 * will be triggered.
+	 */
+	msm_host->pm_qos_wq = create_workqueue(wq);
+	if (!msm_host->pm_qos_wq) {
+		ret = false;
+		dev_err(&msm_host->pdev->dev,
+				"failed to create pm qos unvote work queue\n");
+	}
+	kfree(wq);
+	return ret;
+}
+
 void sdhci_msm_pm_qos_irq_init(struct sdhci_host *host)
 {
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
@@ -3904,6 +3951,8 @@ void sdhci_msm_pm_qos_irq_init(struct sdhci_host *host)
 	else
 		cpumask_copy(&msm_host->pm_qos_irq.req.cpus_affine,
 			cpumask_of(msm_host->pdata->pm_qos_data.irq_cpu));
+
+	sdhci_msm_pm_qos_wq_init(msm_host);
 
 	INIT_DELAYED_WORK(&msm_host->pm_qos_irq.unvote_work,
 		sdhci_msm_pm_qos_irq_unvote_work);
@@ -4079,8 +4128,9 @@ bool sdhci_msm_pm_qos_cpu_unvote(struct sdhci_host *host, int cpu, bool async)
 		return false;
 
 	if (async) {
-		schedule_delayed_work(&msm_host->pm_qos[group].unvote_work,
-				      msecs_to_jiffies(QOS_REMOVE_DELAY_MS));
+		queue_delayed_work(msm_host->pm_qos_wq,
+				&msm_host->pm_qos[group].unvote_work,
+				msecs_to_jiffies(QOS_REMOVE_DELAY_MS));
 		return true;
 	}
 
@@ -4787,7 +4837,6 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 	msm_host->mmc->caps2 |= MMC_CAP2_HS400_POST_TUNING;
 	msm_host->mmc->caps2 |= MMC_CAP2_CLK_SCALE;
 	msm_host->mmc->caps2 |= MMC_CAP2_SANITIZE;
-	msm_host->mmc->caps2 |= MMC_CAP2_MAX_DISCARD_SIZE;
 	msm_host->mmc->caps2 |= MMC_CAP2_SLEEP_AWAKE;
 	msm_host->mmc->pm_caps |= MMC_PM_KEEP_POWER | MMC_PM_WAKE_SDIO_IRQ;
 
@@ -4974,16 +5023,50 @@ static int sdhci_msm_remove(struct platform_device *pdev)
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_msm_host *msm_host = pltfm_host->priv;
 	struct sdhci_msm_pltfm_data *pdata = msm_host->pdata;
+	int nr_groups = msm_host->pdata->pm_qos_data.cpu_group_map.nr_groups;
+	int i;
 	int dead = (readl_relaxed(host->ioaddr + SDHCI_INT_STATUS) ==
 			0xffffffff);
 
-	pr_debug("%s: %s\n", dev_name(&pdev->dev), __func__);
+	pr_debug("%s: %s Enter\n", dev_name(&pdev->dev), __func__);
 	if (!gpio_is_valid(msm_host->pdata->status_gpio))
 		device_remove_file(&pdev->dev, &msm_host->polling);
+
+	device_remove_file(&pdev->dev, &msm_host->auto_cmd21_attr);
 	device_remove_file(&pdev->dev, &msm_host->msm_bus_vote.max_bus_bw);
 	pm_runtime_disable(&pdev->dev);
+
+	if (msm_host->pm_qos_group_enable) {
+		struct sdhci_msm_pm_qos_group *group;
+
+		for (i = 0; i < nr_groups; i++)
+			cancel_delayed_work_sync(
+					&msm_host->pm_qos[i].unvote_work);
+
+		device_remove_file(&msm_host->pdev->dev,
+			&msm_host->pm_qos_group_enable_attr);
+		device_remove_file(&msm_host->pdev->dev,
+			&msm_host->pm_qos_group_status_attr);
+
+		for (i = 0; i < nr_groups; i++) {
+			group = &msm_host->pm_qos[i];
+			pm_qos_remove_request(&group->req);
+		}
+	}
+
+	if (msm_host->pm_qos_irq.enabled) {
+		cancel_delayed_work_sync(&msm_host->pm_qos_irq.unvote_work);
+		device_remove_file(&pdev->dev,
+				&msm_host->pm_qos_irq.enable_attr);
+		device_remove_file(&pdev->dev,
+				&msm_host->pm_qos_irq.status_attr);
+		pm_qos_remove_request(&msm_host->pm_qos_irq.req);
+	}
+
+	if (msm_host->pm_qos_wq)
+		destroy_workqueue(msm_host->pm_qos_wq);
+
 	sdhci_remove_host(host, dead);
-	sdhci_pltfm_free(pdev);
 
 	sdhci_msm_vreg_init(&pdev->dev, msm_host->pdata, false);
 
@@ -4994,6 +5077,9 @@ static int sdhci_msm_remove(struct platform_device *pdev)
 		sdhci_msm_bus_cancel_work_and_set_vote(host, 0);
 		sdhci_msm_bus_unregister(msm_host);
 	}
+
+	sdhci_pltfm_free(pdev);
+
 	return 0;
 }
 
@@ -5122,7 +5208,6 @@ static int sdhci_msm_suspend(struct device *dev)
 	struct sdhci_host *host = dev_get_drvdata(dev);
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
 	struct sdhci_msm_host *msm_host = pltfm_host->priv;
-	struct mmc_host *mmc = host->mmc;
 	int ret = 0;
 	int sdio_cfg = 0;
 	ktime_t start = ktime_get();
@@ -5138,8 +5223,6 @@ static int sdhci_msm_suspend(struct device *dev)
 	}
 	ret = sdhci_msm_runtime_suspend(dev);
 out:
-	/* cancel any clock gating work scheduled by mmc_host_clk_release() */
-	cancel_delayed_work_sync(&mmc->clk_gate_work);
 	sdhci_msm_disable_controller_clock(host);
 	if (host->mmc->card && mmc_card_sdio(host->mmc->card)) {
 		sdio_cfg = sdhci_msm_cfg_sdio_wakeup(host, true);
