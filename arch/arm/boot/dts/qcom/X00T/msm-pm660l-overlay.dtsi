@@ -30,17 +30,20 @@
 
 &pm660l_flash0 {
 	qcom,max-current = <1000>;
-	qcom,current-ma = <900>;
 };
 
 &pm660l_flash1 {
 	qcom,max-current = <280>;
-	qcom,current-ma = <250>;
+	qcom,current-ma = <80>;
+};
+
+&pm660l_torch0 {
+	qcom,current-ma = <100>;
 };
 
 &pm660l_torch1 {
-	qcom,max-current = <150>;
-	qcom,current-ma = <110>;
+	qcom,max-current = <80>;
+	qcom,current-ma = <80>;
 };
 
 &pm660l_switch0 {

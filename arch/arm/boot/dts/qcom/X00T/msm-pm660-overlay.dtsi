@@ -14,6 +14,15 @@
 };
 
 &pm660_gpios {
+	gpio@c200 {
+		status = "okay";
+		qcom,mode = <3>; /* Analog Pass Through */
+		qcom,pull = <5>; /* Input No pull */
+		qcom,vin-sel = <0>; /* VIN0 */
+		qcom,src-sel = <0>; /* Constant */
+		qcom,master-en = <0>; /* Eanble GPIO */
+	};
+	
 	gpio@cb00 {
 		status = "ok";
 		qcom,master-en = <0>;
@@ -78,6 +87,7 @@
 	qcom,hold-soc-while-full;
 	qcom,linearize-soc;
 	qcom,fg-force-load-profile;
+	qcom,fg-jeita-thresholds = <0 1 54 55>;
 	qcom,fg-jeita-hyst-temp = <3>;
 	qcom,fg-recharge-voltage = <4150>;
 	qcom,fg-recharge-soc-thr = <98>;
@@ -86,5 +96,8 @@
 };
 
 &pm660_haptics {
-	qcom,actuator-type = "erm";
-};
+ 	qcom,actuator-type = "erm";
+	qcom,wave-play-rate-us = <5000>;
+	qcom,play-mode = "buffer";
+	qcom,vmax-mv = <2800>;
+}; 
