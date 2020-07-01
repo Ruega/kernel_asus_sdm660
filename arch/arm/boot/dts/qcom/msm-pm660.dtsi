@@ -325,9 +325,7 @@
 				      <&pm660_rradc 10>,
 				      <&pm660_rradc 3>,
 				      <&pm660_rradc 4>;
-			io-channel-names = "charger_temp",
-					   "charger_temp_max",
-					   "usbin_i",
+			io-channel-names = "usbin_i",
 					   "usbin_v";
 
 			qcom,wipower-max-uw = <5000000>;
