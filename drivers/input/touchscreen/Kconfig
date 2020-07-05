@@ -1226,4 +1226,6 @@ config TOUCHSCREEN_ST
 
 source "drivers/input/touchscreen/st/Kconfig"
 
+source "drivers/input/touchscreen/NVT_Touch/Kconfig"
+
 endif
