@@ -1123,18 +1123,10 @@ static irqreturn_t nvt_ts_work_func(int irq, void *data)
 #if MT_PROTOCOL_B
 	uint8_t press_id[TOUCH_MAX_FINGER_NUM] = {0};
 #endif /* MT_PROTOCOL_B */
-	int32_t i;
-	int32_t finger_cnt;
-
-	struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO / 2 };
-
+	int32_t i = 0;
+	int32_t finger_cnt = 0;
+    struct sched_param param = { .sched_priority = MAX_USER_RT_PRIO / 2 };
 	sched_setscheduler(current, SCHED_FIFO, &param);
-
-#if WAKEUP_GESTURE
-	if (bTouchIsAwake == 0) {
-		pm_wakeup_event(&ts->input_dev->dev, 5000);
-	}
-#endif
 
 	mutex_lock(&ts->lock);
 
