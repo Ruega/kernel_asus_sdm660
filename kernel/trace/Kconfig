@@ -162,7 +162,6 @@ if FTRACE
 config FUNCTION_TRACER
 	bool "Kernel Function Tracer"
 	depends on HAVE_FUNCTION_TRACER
-	select KALLSYMS
 	select GENERIC_TRACER
 	select CONTEXT_SWITCH_TRACER
 	help
@@ -272,7 +271,6 @@ config FTRACE_SYSCALLS
 	bool "Trace syscalls"
 	depends on HAVE_SYSCALL_TRACEPOINTS
 	select GENERIC_TRACER
-	select KALLSYMS
 	help
 	  Basic tracer to catch the syscall entry and exit events.
 
@@ -391,7 +389,6 @@ config STACK_TRACER
 	depends on HAVE_FUNCTION_TRACER
 	select FUNCTION_TRACER
 	select STACKTRACE
-	select KALLSYMS
 	help
 	  This special tracer records the maximum stack footprint of the
 	  kernel and displays it in /sys/kernel/debug/tracing/stack_trace.

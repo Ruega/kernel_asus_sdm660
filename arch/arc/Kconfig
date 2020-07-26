@@ -501,7 +501,6 @@ if ARC_DBG
 config ARC_DW2_UNWIND
 	bool "Enable DWARF specific kernel stack unwind"
 	default y
-	select KALLSYMS
 	help
 	  Compiles the kernel with DWARF unwind information and can be used
 	  to get stack backtraces.
