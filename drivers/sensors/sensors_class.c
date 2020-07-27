@@ -237,9 +237,7 @@ static ssize_t sensors_delay_store(struct device *dev,
 		return -EINVAL;
 	}
 	if (sensors_cdev->sensors_poll_delay == NULL) {
-#ifndef CONFIG_INPUT_STK3321
-		dev_err(dev, "Invalid sensor class delay handle\n");
-#endif /* !CONFIG_INPUT_STK3321 */
+		dev_dbg(dev, "Invalid sensor class delay handle\n");
 		return -EINVAL;
 	}
 	ret = sensors_cdev->sensors_poll_delay(sensors_cdev, data);
