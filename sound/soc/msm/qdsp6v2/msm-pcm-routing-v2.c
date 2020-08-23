@@ -16917,7 +16917,7 @@ static const int const slim0_rx_vi_fb_tx_rch_value[] = {
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_SLIMBUS_4_TX
 };
 
-static const int const mi2s_rx_vi_fb_tx_value[] = {
+static const int mi2s_rx_vi_fb_tx_value[] = {
 /* Huaqin add for active nxp pa cal function by xudayi at 2018/03/03 start */
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_TERTIARY_MI2S_TX
 /* Huaqin add for active nxp pa cal function by xudayi at 2018/03/03 end */
