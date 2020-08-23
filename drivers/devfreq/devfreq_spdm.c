@@ -367,7 +367,6 @@ static int probe(struct platform_device *pdev)
 
 #ifdef CONFIG_IPC_LOGGING
 	spdm_init_debugfs(&pdev->dev);
-#endif
 	spdm_ipc_log_ctxt = ipc_log_context_create(SPDM_IPC_LOG_PAGES,
 							"devfreq_spdm", 0);
 
