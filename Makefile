@@ -869,6 +869,9 @@ ifdef CONFIG_RETPOLINE
 KBUILD_CFLAGS += $(call cc-option,-fcf-protection=none)
 endif
 
+#disable error limits in clang
+KBUILD_CFLAGS += $(call cc-option,-ferror-limit=0)
+
 # use the deterministic mode of AR if available
 KBUILD_ARFLAGS := $(call ar-option,D)
 
