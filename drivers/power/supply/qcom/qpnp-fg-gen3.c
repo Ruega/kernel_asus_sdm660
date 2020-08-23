@@ -662,10 +662,8 @@ static int fg_get_battery_temp(struct fg_chip *chip, int *val)
 	rc = qpnp_vadc_read(chip->vadc_dev, VADC_AMUX_THM3_PU2, &result);
 	if (!rc) {
 		temp = result.physical;
-		/* Value is in DegreeC; Convert it to deciDegC.
-		   Also, add an offset of -20 deciDegC, to report
-		   a more probable battery temperature. */
-		temp = (temp * 10) - 20;
+		/* Value is in DegreeC; Convert it to deciDegC. */
+		temp = (temp * 10);
 		*val = temp;
 		return rc;
 	} else {
