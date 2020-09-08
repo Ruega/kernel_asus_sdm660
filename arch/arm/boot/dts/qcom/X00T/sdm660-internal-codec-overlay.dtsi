@@ -17,7 +17,3 @@
 &cdc_sdw_gpios {
 	status = "disabled";
 };
-
-&cdc_dmic_gpios {
-	status = "disabled";
-};
