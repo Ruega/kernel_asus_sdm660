@@ -213,6 +213,8 @@ DEFINE_PER_CPU(bool, cpu_dead_idle);
 static void cpu_idle_loop(void)
 {
 	while (1) {
+		int cpu = smp_processor_id();
+
 		/*
 		 * If the arch has a polling bit, we maintain an invariant:
 		 *
