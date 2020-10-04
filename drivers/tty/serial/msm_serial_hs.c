@@ -2861,8 +2861,6 @@ static int uartdm_init_port(struct uart_port *uport)
 	}
 	sched_setscheduler(rx->task, SCHED_FIFO, &param);
 
-	init_kthread_work(&rx->kwork, msm_serial_hs_rx_work);
-
 	kthread_init_work(&rx->kwork, msm_serial_hs_rx_work);
 
 	kthread_init_worker(&tx->kworker);
@@ -3542,7 +3540,6 @@ static int msm_hs_probe(struct platform_device *pdev)
 	memset(name, 0, sizeof(name));
 	scnprintf(name, sizeof(name), "%s%s", dev_name(msm_uport->uport.dev),
 									"_state");
-#ifdef CONFIG_IPC_LOGGING
 	msm_uport->ipc_msm_hs_log_ctxt =
 			ipc_log_context_create(IPC_MSM_HS_LOG_STATE_PAGES,
 								name, 0);
@@ -3556,7 +3553,7 @@ static int msm_hs_probe(struct platform_device *pdev)
 		if (unlikely(ret))
 			MSM_HS_WARN("%s: Failed to create dev. attr", __func__);
 	}
-#endif
+
 	uport->irq = core_irqres;
 	msm_uport->bam_irq = bam_irqres;
 	pdata->wakeup_irq = wakeup_irqres;
@@ -3928,3 +3925,4 @@ module_exit(msm_serial_hs_exit);
 MODULE_DESCRIPTION("High Speed UART Driver for the MSM chipset");
 MODULE_VERSION("1.2");
 MODULE_LICENSE("GPL v2");
+
