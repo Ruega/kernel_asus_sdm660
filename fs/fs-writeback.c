@@ -1753,7 +1753,7 @@ static long wb_writeback(struct bdi_writeback *wb,
 		 * safe.
 		 */
 		if (work->for_kupdate) {
-			dirtied_before = jiffies - (30 * HZ);
+			oldest_jif = jiffies - (30 * HZ);
 		} else if (work->for_background)
 			oldest_jif = jiffies;
 
