@@ -245,7 +245,6 @@ struct tcp_sock {
 
 	u64	tcp_wstamp_ns;	/* departure time for next sent data packet */
 
-	u64	tcp_wstamp_ns;	/* departure time for next sent data packet */
 	u64	tcp_clock_cache; /* cache last tcp_clock_ns() (see tcp_mstamp_refresh()) */
 
 /* RTT measurement */
