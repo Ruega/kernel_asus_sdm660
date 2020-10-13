@@ -48,7 +48,7 @@ static void tcp_rack_detect_loss(struct sock *sk, u32 *reo_timeout)
 	u32 reo_wnd, prior_retrans = tp->retrans_out;
 
 	if (inet_csk(sk)->icsk_ca_state < TCP_CA_Recovery || !tp->rack.advanced)
-		return 0;
+		return;
 
 	/* Reset the advanced flag to avoid unnecessary queue scanning */
 	tp->rack.advanced = 0;
@@ -104,7 +104,6 @@ static void tcp_rack_detect_loss(struct sock *sk, u32 *reo_timeout)
 			break;
 		}
 	}
-	return prior_retrans - tp->retrans_out;
 }
 
 void tcp_rack_mark_lost(struct sock *sk)
@@ -141,7 +140,6 @@ void tcp_rack_advance(struct tcp_sock *tp, u8 sacked, u32 end_seq,
 
 	rtt_us = tcp_stamp_us_delta(tp->tcp_mstamp, xmit_time);
 	if (sacked & TCPCB_RETRANS) {
-		struct skb_mstamp now;
 
 		/* If the sacked packet was retransmitted, it's ambiguous
 		 * whether the retransmission or the original (or the prior
@@ -153,8 +151,7 @@ void tcp_rack_advance(struct tcp_sock *tp, u8 sacked, u32 end_seq,
 		 * so it's at least one RTT (i.e., retransmission is at least
 		 * an RTT later).
 		 */
-		skb_mstamp_get(&now);
-		if (skb_mstamp_us_delta(&now, xmit_time) < tcp_min_rtt(tp))
+		if (rtt_us < tcp_min_rtt(tp))
 			return;
 	}
 	tp->rack.rtt_us = rtt_us;

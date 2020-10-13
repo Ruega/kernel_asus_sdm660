@@ -1017,7 +1017,8 @@ static int __tcp_transmit_skb(struct sock *sk, struct sk_buff *skb,
 
 	skb->skb_mstamp = tp->tcp_mstamp;
 	if (clone_it) {
-		tcp_rate_skb_sent(sk, skb);
+		TCP_SKB_CB(skb)->tx.in_flight = TCP_SKB_CB(skb)->end_seq
+			- tp->snd_una;
 
 		if (unlikely(skb_cloned(skb)))
 			skb = pskb_copy(skb, gfp_mask);
@@ -2358,7 +2359,6 @@ static bool tcp_write_xmit(struct sock *sk, unsigned int mss_now, int nonagle,
 		limit = min_t(u32, limit, sysctl_tcp_limit_output_bytes);
 
 		if (atomic_read(&sk->sk_wmem_alloc) > limit) {
-			set_bit(TSQ_THROTTLED, &tp->tsq_flags);
 			/* It is possible TX completion already happened
 			 * before we set TSQ_THROTTLED, so we must
 			 * test again the condition.
@@ -2960,6 +2960,7 @@ void tcp_xmit_retransmit_queue(struct sock *sk)
 	max_segs = tcp_tso_segs(sk, tcp_current_mss(sk));
 	tcp_for_write_queue_from(skb, sk) {
 		__u8 sacked = TCP_SKB_CB(skb)->sacked;
+		int segs;
 
 		if (skb == tcp_send_head(sk))
 			break;
