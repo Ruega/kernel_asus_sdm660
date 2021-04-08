@@ -552,7 +552,7 @@ static struct ion_handle *__ion_alloc(struct ion_client *client, size_t len,
 	struct ion_heap *heap;
 	int ret;
 	const unsigned int MAX_DBG_STR_LEN = 64;
-	char dbg_str[MAX_DBG_STR_LEN];
+	char dbg_str[64];
 	unsigned int dbg_str_idx = 0;
 
 	dbg_str[0] = '\0';
