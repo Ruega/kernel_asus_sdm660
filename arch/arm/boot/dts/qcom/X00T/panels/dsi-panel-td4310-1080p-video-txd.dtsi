@@ -98,5 +98,7 @@
 		qcom,mdss-dsi-panel-status-value = <0x1C>;
 		qcom,mdss-dsi-panel-max-error-count = <3>;
 		/* Huaqin add for ESD check by xieguoqiang 20170203 end */
+		qcom,ulps-enabled;
+		qcom,panel-allow-phy-poweroff;
 	};
 };
