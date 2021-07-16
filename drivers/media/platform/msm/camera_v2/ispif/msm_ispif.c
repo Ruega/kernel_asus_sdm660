@@ -45,9 +45,9 @@
 #define ISPIF_INTF_CMD_ENABLE_FRAME_BOUNDARY  0x01
 #define ISPIF_INTF_CMD_DISABLE_IMMEDIATELY    0x02
 
-#define ISPIF_TIMEOUT_SLEEP_US                1000
-#define ISPIF_TIMEOUT_ALL_US               1000000
-#define ISPIF_SOF_DEBUG_COUNT                    0
+#define ISPIF_TIMEOUT_SLEEP_US                100
+#define ISPIF_TIMEOUT_ALL_US                  100
+#define ISPIF_SOF_DEBUG_COUNT                   0
 
 /* 3D Threshold value according guidelines for line width 1280 */
 #define STEREO_DEFAULT_3D_THRESHOLD           0x36
