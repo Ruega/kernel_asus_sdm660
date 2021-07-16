@@ -395,11 +395,11 @@ int msm_camera_clk_enable(struct device *dev,
 					   clk_info[i].clk_name);
 				goto cam_clk_enable_err;
 			}
-			if (clk_info[i].delay > 20) {
+			if (clk_info[i].delay > 10) {
 				msleep(clk_info[i].delay);
 			} else if (clk_info[i].delay) {
-				usleep_range(clk_info[i].delay * 1000,
-					(clk_info[i].delay * 1000) + 1000);
+				usleep_range(clk_info[i].delay * 10,
+					(clk_info[i].delay * 10) + 10);
 			}
 		}
 	} else {
