@@ -6952,11 +6952,20 @@ static int select_energy_cpu_brute(struct task_struct *p, int prev_cpu, int sync
 	if (next_cpu != prev_cpu) {
 		int delta = 0;
 		struct energy_env eenv = {
-			.util_delta     = task_util_est(p),
-			.src_cpu        = prev_cpu,
-			.dst_cpu        = next_cpu,
-			.trg_cpu	= next_cpu,
 			.p              = p,
+			.util_delta     = task_util(p),
+			/* Task's previous CPU candidate */
+			.cpu[EAS_CPU_PRV] = {
+				.cpu_id = prev_cpu,
+			},
+			/* Main alternative CPU candidate */
+			.cpu[EAS_CPU_NXT] = {
+				.cpu_id = next_cpu,
+			},
+			/* Backup alternative CPU candidate */
+			.cpu[EAS_CPU_BKP] = {
+				.cpu_id = backup_cpu,
+			},
 		};
 
 
@@ -6973,20 +6982,12 @@ static int select_energy_cpu_brute(struct task_struct *p, int prev_cpu, int sync
 			goto unlock;
 		}
 
-		target_cpu = next_cpu;
-		if (energy_diff(&eenv) >= 0) {
-			/* No energy saving for target_cpu, try backup */
-			target_cpu = backup_cpu;
-			eenv.dst_cpu = backup_cpu;
-			eenv.trg_cpu = backup_cpu;
-			if (backup_cpu < 0 ||
-			    backup_cpu == prev_cpu ||
-			    energy_diff(&eenv) >= 0) {
-				schedstat_inc(p, se.statistics.nr_wakeups_secb_no_nrg_sav);
-				schedstat_inc(this_rq(), eas_stats.secb_no_nrg_sav);
-				target_cpu = prev_cpu;
-				goto unlock;
-			}
+		/* Check if EAS_CPU_NXT is a more energy efficient CPU */
+		if (select_energy_cpu_idx(&eenv) != EAS_CPU_PRV) {
+			schedstat_inc(p, se.statistics.nr_wakeups_secb_nrg_sav);
+			schedstat_inc(this_rq(), eas_stats.secb_nrg_sav);
+			target_cpu = eenv.cpu[eenv.next_idx].cpu_id;
+			goto unlock;
 		}
 
 		schedstat_inc(p, se.statistics.nr_wakeups_secb_no_nrg_sav);
