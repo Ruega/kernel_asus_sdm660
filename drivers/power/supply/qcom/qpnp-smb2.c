@@ -43,7 +43,7 @@ static struct smb_params v1_params = {
 	.fcc			= {
 		.name	= "fast charge current",
 		.reg	= FAST_CHARGE_CURRENT_CFG_REG,
-		.min_u	= 2700000,
+		.min_u	= 0,
 		.max_u	= 4500000,
 		.step_u	= 25000,
 	},
