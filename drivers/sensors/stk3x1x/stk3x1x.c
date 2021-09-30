@@ -869,7 +869,7 @@ static int32_t stk3x1x_check_pid(struct stk3x1x_data *ps_data)
 		return err;
 	value[2] = err;
 
-	printk(KERN_INFO "%s: PID=0x%x, RID=0x%x, 0x90=0x%x\n", __func__, value[0], value[1], value[2]);
+//	printk(KERN_INFO "%s: PID=0x%x, RID=0x%x, 0x90=0x%x\n", __func__, value[0], value[1], value[2]);
 	ps_data->pid = value[0];
 
 	if(value[0] == STK3311WV_PID)
@@ -3307,7 +3307,7 @@ static int stk_ps_tune_zero_func_fae(struct stk3x1x_data *ps_data)
 		if(word_data > ps_data->psa)
 		{
 			ps_data->psa = word_data;
-			printk(KERN_INFO "%s: update psa: psa=%d,psi=%d\n", __func__, ps_data->psa, ps_data->psi);
+//			printk(KERN_INFO "%s: update psa: psa=%d,psi=%d\n", __func__, ps_data->psa, ps_data->psi);
 		}
 		if(word_data < ps_data->psi)
 		{
@@ -4278,7 +4278,7 @@ static int stk3x1x_power_ctl(struct stk3x1x_data *data, bool on)
 			return ret;
 		}
 		data->power_enabled = on;
-		printk(KERN_INFO "%s: disable stk3x1x power", __func__);
+//		printk(KERN_INFO "%s: disable stk3x1x power", __func__);
 		dev_dbg(&data->client->dev, "stk3x1x_power_ctl on=%d\n",
 				on);
 	} else if (on && !data->power_enabled) {
@@ -4297,7 +4297,7 @@ static int stk3x1x_power_ctl(struct stk3x1x_data *data, bool on)
 			return ret;
 		}
 		data->power_enabled = on;
-		printk(KERN_INFO "%s: enable stk3x1x power", __func__);
+//		printk(KERN_INFO "%s: enable stk3x1x power", __func__);
 		dev_dbg(&data->client->dev, "stk3x1x_power_ctl on=%d\n",
 				on);
 	} else {
