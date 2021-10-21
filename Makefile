@@ -660,14 +660,6 @@ ifeq ($(cc-name),clang)
 KBUILD_CFLAGS	+= $(call cc-disable-warning,compound-token-split-by-space)
 endif
 
-ifeq ($(cc-name),clang)
-KBUILD_CFLAGS   += -mcpu=cortex-a53 -mtune=cortex-a53
-endif
-
-ifeq ($(cc-name),gcc)
-KBUILD_CFLAGS   += -mcpu=cortex-a53 -mtune=cortex-a53
-endif
-
 KBUILD_CFLAGS += $(call cc-ifversion, -gt, 0900, \
 			$(call cc-option, -Wno-psabi) \
 			$(call cc-disable-warning,maybe-uninitialized,) \
@@ -691,6 +683,7 @@ endif
 ifdef CONFIG_READABLE_ASM
 # Disable optimizations that make assembler listings hard to read.
 # reorder blocks reorders the control in the function
+# ipa clone creates specialized cloned functions
 # partial inlining inlines only parts of functions
 KBUILD_CFLAGS += $(call cc-option,-fno-reorder-blocks,) \
                  $(call cc-option,-fno-ipa-cp-clone,) \
