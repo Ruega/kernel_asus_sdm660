@@ -31,7 +31,7 @@ static bool set_charging_control(struct power_supply *batt_psy, bool enable)
 
 	val.intval = enable;
 	rc = power_supply_set_property(batt_psy,
-			POWER_SUPPLY_PROP_BATTERY_CHARGING_ENABLED, &val);
+			POWER_SUPPLY_PROP_CHARGING_ENABLED, &val);
 	if (rc) {
 		if (enable) {
 			error_enable_cnt++;
@@ -67,7 +67,7 @@ static void autocut_charger_worker(struct work_struct *work)
 	power_supply_get_property(batt_psy,
 		POWER_SUPPLY_PROP_CAPACITY, &bat_percent);
 	power_supply_get_property(batt_psy,
-		POWER_SUPPLY_PROP_BATTERY_CHARGING_ENABLED, &charging_enabled);
+		POWER_SUPPLY_PROP_CHARGING_ENABLED, &charging_enabled);
 	power_supply_get_property(usb_psy,
 		POWER_SUPPLY_PROP_PRESENT, &present);
 
