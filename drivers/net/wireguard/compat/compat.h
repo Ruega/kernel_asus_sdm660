@@ -16,15 +16,13 @@
 #define ISRHEL7
 #elif RHEL_MAJOR == 8
 #define ISRHEL8
-#if RHEL_MINOR >= 4
+#if RHEL_MINOR >= 6
 #define ISCENTOS8S
 #endif
 #endif
 #endif
 #ifdef UTS_UBUNTU_RELEASE_ABI
-#if LINUX_VERSION_CODE == KERNEL_VERSION(3, 13, 11)
-#define ISUBUNTU1404
-#elif (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0) || LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 256)) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
 #define ISUBUNTU1604
 #elif LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)
 #define ISUBUNTU1804
@@ -91,7 +89,7 @@
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 16, 83)
 #define ipv6_dst_lookup_flow(a, b, c, d) ipv6_dst_lookup_flow(b, c, d)
-#elif (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 5) && LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 18) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 20, 0) && !defined(ISUBUNTU1904)) || (!defined(ISRHEL8) && !defined(ISDEBIAN) && !defined(ISUBUNTU1804) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 119) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 181) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 224) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 256))) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 224) && !defined(ISUBUNTU1604) && !defined(ISRHEL7))
+#elif (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 5) && LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 18) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 20, 0) && !defined(ISUBUNTU1904)) || (!defined(ISRHEL8) && !defined(ISDEBIAN) && !defined(ISUBUNTU1804) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 119) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 181) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 224) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 224) && !defined(ISUBUNTU1604) && !defined(ISRHEL7))
 #define ipv6_dst_lookup_flow(a, b, c, d) ipv6_dst_lookup(a, b, &dst, c) + (void *)0 ?: dst
 #endif
 
@@ -219,7 +217,7 @@ static inline void skb_scrub_packet(struct sk_buff *skb, bool xnet)
 #define skb_scrub_packet(a, b) skb_scrub_packet(a)
 #endif
 
-#if ((LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)) || LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 63) || defined(ISUBUNTU1404)) && !defined(ISRHEL7)
+#if ((LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)) || LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 63)) && !defined(ISRHEL7)
 #include <linux/random.h>
 static inline u32 __compat_prandom_u32_max(u32 ep_ro)
 {
@@ -268,7 +266,7 @@ static inline u32 __compat_prandom_u32_max(u32 ep_ro)
 #endif
 #endif
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 3) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 35) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 15, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 24) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0) && !defined(ISUBUNTU1404)) || (LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 33) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 11, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(3, 10, 60) && !defined(ISRHEL7))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 17, 3) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 17, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(3, 16, 35) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 15, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 24) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 33) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 11, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(3, 10, 60) && !defined(ISRHEL7))
 static inline void memzero_explicit(void *s, size_t count)
 {
 	memset(s, 0, count);
@@ -502,7 +500,7 @@ static inline void *__compat_kvzalloc(size_t size, gfp_t flags)
 #define kvzalloc __compat_kvzalloc
 #endif
 
-#if ((LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)) || LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 41)) && !defined(ISUBUNTU1404)
+#if ((LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)) || LINUX_VERSION_CODE < KERNEL_VERSION(3, 12, 41))
 #include <linux/vmalloc.h>
 #include <linux/mm.h>
 static inline void __compat_kvfree(const void *addr)
@@ -513,6 +511,28 @@ static inline void __compat_kvfree(const void *addr)
 		kfree(addr);
 }
 #define kvfree __compat_kvfree
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
+#include <linux/vmalloc.h>
+#include <linux/mm.h>
+static inline void *__compat_kvmalloc_array(size_t n, size_t size, gfp_t flags)
+{
+	if (n != 0 && SIZE_MAX / n < size)
+		return NULL;
+	return kvmalloc(n * size, flags);
+}
+#define kvmalloc_array __compat_kvmalloc_array
+#endif
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
+#include <linux/vmalloc.h>
+#include <linux/mm.h>
+static inline void *__compat_kvcalloc(size_t n, size_t size, gfp_t flags)
+{
+        return kvmalloc_array(n, size, flags | __GFP_ZERO);
+}
+#define kvcalloc __compat_kvcalloc
 #endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 9)
@@ -565,7 +585,7 @@ static inline struct nlattr **genl_family_attrbuf(const struct genl_family *fami
 #define COMPAT_CANNOT_USE_GENL_NOPS
 #endif
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 2) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 16) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 65) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 256))) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 101) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0)) || LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 84)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 2) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 16) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 65) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 101) && LINUX_VERSION_CODE >= KERNEL_VERSION(3, 19, 0)) || LINUX_VERSION_CODE < KERNEL_VERSION(3, 18, 84)
 #define __COMPAT_NETLINK_DUMP_BLOCK { \
 	int ret; \
 	skb->end -= nlmsg_total_size(sizeof(int)); \
@@ -677,7 +697,7 @@ static inline void *skb_put_data(struct sk_buff *skb, const void *data, unsigned
 #define napi_complete_done(n, work_done) napi_complete(n)
 #endif
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0) && LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 256))
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)
 #include <linux/netdevice.h>
 /* NAPI_STATE_SCHED gets set by netif_napi_add anyway, so this is safe.
  * Also, kernels without NAPI_STATE_NO_BUSY_POLL don't have a call to
@@ -757,7 +777,7 @@ static inline void crypto_xor_cpy(u8 *dst, const u8 *src1, const u8 *src2,
 #define hlist_add_behind(a, b) hlist_add_after(b, a)
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0) && !defined(ISCENTOS8S)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0) && !defined(ISRHEL8)
 #define totalram_pages() totalram_pages
 #endif
 
@@ -831,10 +851,16 @@ static inline void skb_mark_not_on_list(struct sk_buff *skb)
 #endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 20, 0) && !defined(ISRHEL8)
+#include <net/netlink.h>
+#ifndef NLA_POLICY_EXACT_LEN
 #define NLA_POLICY_EXACT_LEN(_len) { .type = NLA_UNSPEC, .len = _len }
 #endif
+#endif
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 2, 0) && !defined(ISRHEL8)
+#include <net/netlink.h>
+#ifndef NLA_POLICY_MIN_LEN
 #define NLA_POLICY_MIN_LEN(_len) { .type = NLA_UNSPEC, .len = _len }
+#endif
 #define COMPAT_CANNOT_INDIVIDUAL_NETLINK_OPS_POLICY
 #endif
 
@@ -849,7 +875,7 @@ static inline void skb_mark_not_on_list(struct sk_buff *skb)
 #endif
 #endif
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0)
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 5, 0) && !defined(ISRHEL8)
 #define genl_dumpit_info(cb) ({ \
 	struct { struct nlattr **attrs; } *a = (void *)((u8 *)cb->args + offsetofend(struct dump_ctx, next_allowedip)); \
 	BUILD_BUG_ON(sizeof(cb->args) < offsetofend(struct dump_ctx, next_allowedip) + sizeof(*a)); \
@@ -1096,6 +1122,37 @@ static const struct header_ops ip_tunnel_header_ops = { .parse_protocol = ip_tun
 #endif
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 16, 0)
+#include <net/dst_cache.h>
+struct dst_cache_pcpu {
+	unsigned long refresh_ts;
+	struct dst_entry *dst;
+	u32 cookie;
+	union {
+		struct in_addr in_saddr;
+		struct in6_addr in6_saddr;
+	};
+};
+#define COMPAT_HAS_DEFINED_DST_CACHE_PCPU
+static inline void dst_cache_reset_now(struct dst_cache *dst_cache)
+{
+	int i;
+
+	if (!dst_cache->cache)
+		return;
+
+	dst_cache->reset_ts = jiffies;
+	for_each_possible_cpu(i) {
+		struct dst_cache_pcpu *idst = per_cpu_ptr(dst_cache->cache, i);
+		struct dst_entry *dst = idst->dst;
+
+		idst->cookie = 0;
+		idst->dst = NULL;
+		dst_release(dst);
+	}
+}
+#endif
+
 #if defined(ISUBUNTU1604) || defined(ISRHEL7)
 #include <linux/siphash.h>
 #ifndef _WG_LINUX_SIPHASH_H
@@ -1127,7 +1184,7 @@ static const struct header_ops ip_tunnel_header_ops = { .parse_protocol = ip_tun
 #undef __read_mostly
 #define __read_mostly
 #endif
-#if (defined(RAP_PLUGIN) || defined(CONFIG_CFI_CLANG)) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+#if (defined(CONFIG_PAX) || defined(CONFIG_CFI_CLANG)) && LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
 #include <linux/timer.h>
 #define wg_expired_retransmit_handshake(a) wg_expired_retransmit_handshake(unsigned long timer)
 #define wg_expired_send_keepalive(a) wg_expired_send_keepalive(unsigned long timer)
