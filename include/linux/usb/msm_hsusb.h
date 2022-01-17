@@ -70,8 +70,9 @@ enum msm_usb_phy_type {
 	SNPS_28NM_INTEGRATED_PHY,
 };
 
-#define IDEV_CHG_MAX	1500
+#define IDEV_CHG_MAX	2500
 #define IUNIT		100
+#define IDEV_HVDCP_CHG_MAX	1800
 
 /**
  * Different states involved in USB charger detection.
@@ -105,6 +106,8 @@ enum usb_chg_state {
  * USB_DCP_CHARGER	Dedicated charger port (AC charger/ Wall charger).
  * USB_CDP_CHARGER	Charging downstream port. Enumeration can happen and
  *                      IDEV_CHG_MAX can be drawn irrespective of USB state.
+ * USB_PROPRIETARY_CHARGER A proprietary charger pull DP and DM to specific
+ *			voltages between 2.0-3.3v for identification.
  *
  */
 enum usb_chg_type {
@@ -112,6 +115,8 @@ enum usb_chg_type {
 	USB_SDP_CHARGER,
 	USB_DCP_CHARGER,
 	USB_CDP_CHARGER,
+	USB_PROPRIETARY_CHARGER,
+	USB_FLOATED_CHARGER,
 };
 
 /**
