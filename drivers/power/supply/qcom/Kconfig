@@ -102,7 +102,7 @@ config QPNP_QNOVO
 
 config AUTOCUT_CHARGER
       bool "AutoCut Charger"
-      default n
+      default y
       help
         Disable battery charging if battery capacity at 100.
 
